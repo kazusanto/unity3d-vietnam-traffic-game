@@ -10,14 +10,12 @@ public class CabController : MonoBehaviour
 
 
     private Animator animator = null;
-    private Rigidbody rigid = null;
     private float steering = 0.0f;
     private float speed = 0.0f;
 
     // Use this for initialization
     void Start () {
         animator = GetComponent<Animator>();
-        rigid = GetComponent<Rigidbody>();
     }
 
     // Update is called once per frame

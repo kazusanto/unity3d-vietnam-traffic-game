@@ -25,7 +25,7 @@ public class CabDrive : MonoBehaviour {
         var targetpos2d = new Vector2(target.transform.position.x, target.transform.position.z);
         var targetdir2d = targetpos2d - mypos2d;
         if (hit && count-- > 0) {
-            cab.Move(steering, 0.0f, 1.0f, 1.0f);
+            cab.Move(steering, 0.0f, 0.2f, 0.2f);
             return;
         }
         hit = false;
@@ -62,8 +62,18 @@ public class CabDrive : MonoBehaviour {
     void OnCollisionEnter(Collision other) {
         if (!hit && other.gameObject.CompareTag("Vehicle")) {
             if (other.gameObject.transform.position.z < transform.position.z) {
-                hit = true;
-                count = Random.Range(10, 50);
+                if (Random.Range(1, 4) == 1) {
+                    hit = true;
+                    count = Random.Range(5, 40);
+                } else {
+                    var mydir2d = new Vector2(transform.forward.x, transform.forward.z);
+                    var mypos2d = new Vector2(transform.position.x, transform.position.z);
+                    var otherpos2d = new Vector2(other.transform.position.x, other.transform.position.z);
+                    var otherdir2d = otherpos2d - mypos2d;
+                    var cross = mydir2d.x * otherdir2d.y - mydir2d.y * otherdir2d.x;
+                    steering_to += (cross > 0.0f) ? 1 : -1 * Random.Range(0.4f, 1.0f);
+                    count = Random.Range(5, 20);
+                }
             }
         }
     }
