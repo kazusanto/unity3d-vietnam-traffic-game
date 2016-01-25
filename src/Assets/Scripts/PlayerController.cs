@@ -45,12 +45,14 @@ public class PlayerController : MonoBehaviour {
             }
         }
         if (!Gameover) {
+            /*
             Transform neck = GameObject.Find("Neck").GetComponent<Transform>(); //transform.FindChild("PlayerMale").FindChild("PlayerMale").FindChild("Hips").FindChild("Spine").FindChild("Spine1").FindChild("Spine2").FindChild("Spine3").FindChild("Neck").gameObject;
             Transform head = GameObject.Find("Head").GetComponent<Transform>(); //neck.transform.FindChild("Head").gameObject;
             Quaternion qt = Quaternion.AngleAxis(90.0f, Vector3.up);
             neck.localRotation = qt;
             head.localRotation = qt;
             head.localScale = new Vector3(2.0f, 2.0f, 2.0f);
+            */
             var moving = false;
             if (Input.GetMouseButton(0)) {
                 moving = true;
