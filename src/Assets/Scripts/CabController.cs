@@ -56,17 +56,6 @@ public class CabController : MonoBehaviour
         Move(steering, accel, brake, brake);
     }
 
-    void FixedUpdate() {
-//        print(Time.deltaTime);
-//        Vector3 eulerAngleVelocity = new Vector3(0.0f, steering * MaxSteering, 0.0f);
-//        Quaternion deltaRotation = Quaternion.Euler(eulerAngleVelocity * Time.deltaTime);
-//        rigid.MoveRotation(rigid.rotation * deltaRotation);
-
-//        var vec = new Vector3(0.0f, -100.0f, 10000.0f);
-//        rigid.AddForce(vec * Time.deltaTime, ForceMode.Force);
-        //animator.SetFloat("speed", 1.0f);
-    }
-
     public void Move(float steering, float accel, float footbrake, float handbrake) {
         if (steering > 1.0f) {
             steering = 1.0f;
@@ -87,11 +76,6 @@ public class CabController : MonoBehaviour
         transform.Rotate(new Vector3(0, steering * MaxSteering * speed, 0));
         var forward = transform.forward.normalized;
         transform.Translate(forward * speed * MaxSpeed * Time.deltaTime, Space.World);
-/*
-        // Vector3 eulerAngleVelocity = new Vector3(0.0f, steering * MaxSteering, 0.0f);
-        // Quaternion deltaRotation = Quaternion.Euler(eulerAngleVelocity * Time.deltaTime);
-        //rigidbody.MoveRotation(rigidbody.rotation * deltaRotation);
-*/
         animator.SetFloat("direction", steering);
         animator.SetFloat("speed", speed);
     }

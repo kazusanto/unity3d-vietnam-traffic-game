@@ -19,8 +19,8 @@ public class PlayerController : MonoBehaviour {
         Gameover = false;
         hit = false;
         controller = GetComponent<ThirdPersonCharacter>();
+        animator = GetComponent<Animator>();
         if (!controller) {
-            animator = GetComponent<Animator>();
             animator.SetFloat("direction", -1.0f);
         }
         AudioListener.volume = 10.0f;
@@ -28,13 +28,14 @@ public class PlayerController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+        float heading = 0.0f;
         if (hit) {
             hit = false;
             Gameover = true;
             if (controller) {
                 controller.Move(Vector3.zero, false, true);
             }
-            if (animator) {
+            if (!controller) {
                 animator.SetFloat("direction", 0.0f);
                 animator.SetFloat("speed", 0.0f);
                 animator.SetTrigger("onHit");
@@ -45,14 +46,6 @@ public class PlayerController : MonoBehaviour {
             }
         }
         if (!Gameover) {
-            /*
-            Transform neck = GameObject.Find("Neck").GetComponent<Transform>(); //transform.FindChild("PlayerMale").FindChild("PlayerMale").FindChild("Hips").FindChild("Spine").FindChild("Spine1").FindChild("Spine2").FindChild("Spine3").FindChild("Neck").gameObject;
-            Transform head = GameObject.Find("Head").GetComponent<Transform>(); //neck.transform.FindChild("Head").gameObject;
-            Quaternion qt = Quaternion.AngleAxis(90.0f, Vector3.up);
-            neck.localRotation = qt;
-            head.localRotation = qt;
-            head.localScale = new Vector3(2.0f, 2.0f, 2.0f);
-            */
             var moving = false;
             if (Input.GetMouseButton(0)) {
                 moving = true;
@@ -61,19 +54,23 @@ public class PlayerController : MonoBehaviour {
                 moving = true;
             }
             if (moving) {
+                heading = -0.6f;
                 Move(new Vector3(Speed, 0.0f, 0.0f), false, false);
             } else {
+                heading = -1.0f;
                 Move(Vector3.zero, false, false);
             }
             Score = (int)transform.position.x;
+        }
+        if (controller) {
+            animator.SetFloat("HeadDir", heading);
         }
 	}
 
     public void Move(Vector3 direction, bool crouch, bool jump) {
         if (controller) {
             controller.Move(direction, crouch, jump);
-        }
-        if (animator) {
+        } else {
             transform.Translate(direction * Time.deltaTime, Space.World);
             animator.SetFloat("speed", direction.x > 0.0f ? 1.0f : 0.0f);
         }
