@@ -4,15 +4,15 @@ using System.Collections;
 
 public class ScoreController : MonoBehaviour {
 
-    private Text text;
+    private Text m_text;
 
     // Use this for initialization
 	void Start () {
-        text = GetComponent<Text>();
+        m_text = GetComponent<Text>();
 	}
 	
 	// Update is called once per frame
 	void Update () {
-        text.text = PlayerController.Score.ToString();
+        m_text.text = PlayerController.Score.ToString();
 	}
 }

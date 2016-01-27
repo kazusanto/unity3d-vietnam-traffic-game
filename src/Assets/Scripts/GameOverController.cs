@@ -5,6 +5,7 @@ using System.Collections;
 public class GameOverController : MonoBehaviour {
 
     [SerializeField] private string m_SceneName;
+    [SerializeField] private AudioClip m_Ending;
 
     private Text m_text;
     private bool m_released = false;
@@ -18,10 +19,11 @@ public class GameOverController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        if (PlayerController.Gameover) {
+        if (PlayerController.GameOver) {
             if (!m_text.enabled) {
                 m_text.enabled = true;
                 m_wait_for = Time.time + 3.0f;
+                GetComponent<AudioSource>().PlayOneShot(m_Ending);
             } else if (Time.time > m_wait_for) {
                 var restart = false;
                 if (Input.GetMouseButtonDown(0)) {
