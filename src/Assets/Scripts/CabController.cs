@@ -18,10 +18,12 @@ public class CabController : MonoBehaviour
     // Use this for initialization
     void Start () {
         m_animator = GetComponent<Animator>();
+        GameObject baggage_obj = null;
         if (m_Baggages.Length > 0) {
             var i = Random.Range(0, m_Baggages.Length + 1);
             if (i < m_Baggages.Length) {
-                var baggage = GameObject.Instantiate(m_Baggages[i]).transform;
+                baggage_obj = GameObject.Instantiate(m_Baggages[i]);
+                var baggage = baggage_obj.transform;
                 var seat = transform.Find(m_BaggageOriginName);
                 var joint = new GameObject("Joint").transform;
                 joint.localPosition = new Vector3(
