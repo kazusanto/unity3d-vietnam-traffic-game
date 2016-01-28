@@ -8,17 +8,27 @@ ModelImporter:
     100000: //RootNode
     100002: Baggage
     100004: Cube
+    100006: Cylinder
+    100008: BaggageBox
     400000: //RootNode
     400002: Baggage
     400004: Cube
+    400006: Cylinder
+    400008: BaggageBox
     2300000: //RootNode
     2300002: Baggage
     2300004: Cube
+    2300006: Cylinder
+    2300008: BaggageBox
     3300000: //RootNode
     3300002: Baggage
     3300004: Cube
+    3300006: Cylinder
+    3300008: BaggageBox
     4300000: Baggage
     4300002: Cube
+    4300004: Cylinder
+    4300006: BaggageBox
   materials:
     importMaterials: 1
     materialName: 0

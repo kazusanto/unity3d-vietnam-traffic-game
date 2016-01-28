@@ -55,7 +55,6 @@ public class PlayerController : MonoBehaviour {
                 m_animator.SetFloat("speed", 0.0f);
                 m_animator.SetTrigger("onHit");
             }
-            m_audio.volume = 20.0f;
             m_audio.PlayOneShot(m_Crash);
         } else if (s_gameover) {
             if (m_controller) {
