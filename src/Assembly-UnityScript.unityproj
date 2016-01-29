@@ -45,7 +45,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Scripts\TerrainController.js" />
      <Compile Include="Assets\Scripts\VehicleBuilder.js" />
      <Compile Include="Assets\Scripts\VehicleDrive.js" />
      <None Include="Assets\Standard Assets\Effects\ToonShading\Shaders\ToonBasic.shader" />

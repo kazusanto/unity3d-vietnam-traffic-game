@@ -58,7 +58,11 @@ public class PlayerController : MonoBehaviour {
             m_audio.PlayOneShot(m_Crash);
         } else if (s_gameover) {
             if (m_controller) {
-                m_controller.Move(new Vector3(0.05f, 0.0f, -0.1f), false, false);
+                if (transform.position.z > -5.0f) {
+                    m_controller.Move(new Vector3(0.05f, 0.0f, -0.1f), false, false);
+                } else {
+                    m_controller.Move(Vector3.zero, false, false);
+                }
             }
         }
         if (!s_gameover) {
