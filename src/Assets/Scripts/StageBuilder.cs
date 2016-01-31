@@ -5,22 +5,40 @@ using System.Collections.Generic;
 public class StageBuilder : MonoBehaviour {
 
     private struct LandRange {
+        public LandRange(int begin, int end) {
+            this.begin = begin; 
+            this.end = end; 
+        }
         public int begin;
         public int end;
+    }
+
+    public enum TrafficRule {
+        Stop          = 0,
+        Left          = 1,
+        Right         = 2,
+        Up            = 4,
+        UpLeft        = 5,
+        UpRight       = 6,
+        Down          = 8,
+        DownLeft      = 9,
+        DownRight     = 10,
     };
+
     [SerializeField] private GameObject m_Land = null;
     [SerializeField] private GameObject m_Sidewalk = null;
     [SerializeField] private GameObject m_SidewalkCorner = null;
     [SerializeField] private float m_UnitSize = 2.0f;
-    [SerializeField] private int m_Backward = -5;
-    [SerializeField] private int m_Forward = 5;
-    [SerializeField] private int m_Near = -10;
+    [SerializeField] private int m_Backward = -20;
+    [SerializeField] private int m_Forward = 20;
+    [SerializeField] private int m_Near = -20;
     [SerializeField] private int m_Far = 30;
     [SerializeField] private int m_MaxLands = 5;
     [SerializeField] private float m_Straightness = 0.5f;
     [SerializeField] private float m_Blindness = 0.5f;
-    [SerializeField] private int[] m_LandWidths = { 4, 4, 4 };
-    [SerializeField] private int[] m_RoadWidths = { 2, 2, 2 };
+    [SerializeField] private int[] m_LandWidths = { 3, 3, 3 };
+    [SerializeField] private int[] m_RoadWidths = { 4, 4, 4 };
+    [SerializeField] private bool m_isLoop = true;
 
     private GameObject m_player = null;
     private float m_min = 0;
@@ -29,13 +47,74 @@ public class StageBuilder : MonoBehaviour {
     private int m_index = 0;
     private List<int> m_prevLands = null;
     private List<LandRange> m_reservedLands = null;
+    private Dictionary<int, List<TrafficRule>> m_trafficRules = new Dictionary<int, List<TrafficRule>>();
+
+    public TrafficRule GetTrafficRule(float x, float z) {
+        bool outside = false;
+        TrafficRule rule = TrafficRule.Stop;
+        float unit_harf = (float)m_UnitSize / 2.0f;
+        int ux = (int)((x + unit_harf) / m_UnitSize);
+        int uz = (int)((z + unit_harf) / m_UnitSize) - m_Near;
+        if (uz >= m_Far - m_Near) {
+            outside = true;
+            uz = m_Far - m_Near - 1;
+        }
+        List<TrafficRule> rules;
+        if (m_trafficRules.TryGetValue(ux, out rules)) {
+            rule = uz < rules.Count ? rules[uz] : TrafficRule.Stop;
+        }
+        if (outside && rule == TrafficRule.Stop) { 
+            rule = TrafficRule.Right;
+        }
+        return rule;
+    }
+
+    private void SetTrafficRule(int ux, int uz, TrafficRule rule) {
+        uz -= m_Near;
+        List<TrafficRule> rules = null;
+        if (m_trafficRules.TryGetValue(ux, out rules)) {
+            if (uz < rules.Count) {
+                rules[uz] = rule;
+            } else {
+                rules.AddRange(new TrafficRule[uz - rules.Count + 1]);
+                rules[uz] = rule;
+            }
+            m_trafficRules[ux] = rules;
+        } else {
+            rules = new List<TrafficRule>();
+            rules.AddRange(new TrafficRule[m_Far - m_Near]);
+            rules[uz] = rule;
+            m_trafficRules.Add(ux, rules);
+        }
+    }
+
+    private void removePassedTrafficRules() {
+        var minux = (int)(m_player.transform.position.x / m_UnitSize) + m_Backward;
+        var list = new List<int>();
+        foreach (var ux in m_trafficRules.Keys) {
+            if (ux < minux) {
+                list.Add(ux);
+            }
+        }
+        foreach (var ux in list) {
+            m_trafficRules.Remove(ux);
+        }
+    }
 
     private int LandWidth(int index) { 
-        return GetLoopedValue<int>(m_LandWidths, index);
+        if (m_isLoop) {
+            return GetLoopedValue<int>(m_LandWidths, index);
+        } else {
+            return GetExpandedValue<int>(m_LandWidths, index);
+        }
     }
 
     private int RoadWidth(int index) { 
-        return GetLoopedValue<int>(m_RoadWidths, index);
+        if (m_isLoop) {
+            return GetLoopedValue<int>(m_RoadWidths, index);
+        } else {
+            return GetExpandedValue<int>(m_RoadWidths, index);
+        }
     }
 
     private T GetExpandedValue<T>(T[] array, int index) { 
@@ -66,7 +145,7 @@ public class StageBuilder : MonoBehaviour {
 
     // Use this for initialization
 	void Start () {
-        m_min = m_max = m_Backward;
+        m_min = m_max = m_next = m_Backward;
         m_player = GameObject.FindGameObjectWithTag("Player");
 	}
 	
@@ -79,7 +158,8 @@ public class StageBuilder : MonoBehaviour {
             built = true;
         }
         if (built) {
-            removePassed();
+            removePassedLands();
+            removePassedTrafficRules();
         }
 	}
 
@@ -136,6 +216,7 @@ public class StageBuilder : MonoBehaviour {
         List<LandRange> reserved = new List<LandRange>();
         var uz = m_Near;
         var landWidth2 = landWidth + roadWidth + LandWidth(m_index + 1);
+        var leftwidth = RoadWidth(m_index - 1);
         for (var i = 0; i < lands.Count; i++) {
             var nz = lands[i];
             if (uz == nz) {
@@ -145,6 +226,8 @@ public class StageBuilder : MonoBehaviour {
             if (m_reservedLands != null) {
                 foreach (var range in m_reservedLands) {
                     if (uz == range.begin) {
+                        createTrafficRules(ux + landWidth, uz, roadWidth, nz - uz - roadWidth, TrafficRule.Down);
+                        createTrafficRules(ux + landWidth, nz - roadWidth, roadWidth, roadWidth, TrafficRule.DownRight);
                         skip = true;
                         break;
                     }
@@ -154,13 +237,12 @@ public class StageBuilder : MonoBehaviour {
                 uz = nz;
                 continue;
             }
+            bool isRight = Random.Range(0, 2) == 0 ? true : false;
             var depth = nz - uz - roadWidth;
             var width = landWidth;
             if (uz != 0 && Random.Range(0.0f, 1.0f) < m_Blindness) {
                 width = landWidth2;
-                var range = new LandRange();
-                range.begin = uz;
-                range.end = uz + depth;
+                var range = new LandRange(uz, uz + depth);
                 reserved.Add(range);
             }
             if (width < 2) {
@@ -170,10 +252,21 @@ public class StageBuilder : MonoBehaviour {
                 depth = 2;
             }
             createLand(ux, uz, width, depth);
+            createTrafficRules(ux, uz, width, depth, TrafficRule.Stop);
+            createTrafficRules(ux, nz - roadWidth, width, roadWidth, isRight ? TrafficRule.Right : TrafficRule.Left);
+            createTrafficRules(ux + width, nz - roadWidth, landWidth2 - width, roadWidth, isRight ? TrafficRule.DownRight : TrafficRule.DownLeft);
+            createTrafficRules(ux + width, uz, landWidth2 - width, depth, TrafficRule.Down);
+            createTrafficRules(ux - leftwidth, uz, leftwidth, depth, TrafficRule.Down);
+            if (!isRight) {
+                createTrafficRules(ux - leftwidth, nz - roadWidth, leftwidth, roadWidth, TrafficRule.Down);
+            }
             uz = nz;
         }
         if (uz + 2 <= m_Far) {
             createLand(ux, uz, landWidth, m_Far - uz);
+            createTrafficRules(ux, uz, landWidth, m_Far - uz, TrafficRule.Stop);
+            createTrafficRules(ux + landWidth, uz, landWidth2 - landWidth, m_Far - uz, TrafficRule.Down);
+            createTrafficRules(ux - leftwidth, uz, leftwidth, m_Far - uz, TrafficRule.Down);
         }
         m_reservedLands = reserved;
         m_prevLands = lands;
@@ -183,12 +276,20 @@ public class StageBuilder : MonoBehaviour {
         m_index++;
     }
 
-    private void removePassed() {
-        var minx = m_player.transform.position.x - (m_Far * m_UnitSize);
+    private void removePassedLands() {
+        var minx = m_player.transform.position.x + (m_Backward * m_UnitSize);
         for (var i = 0; i < transform.childCount; i++) {
             var child = transform.GetChild(i);
             if (child.position.x < minx) {
                 GameObject.Destroy(child.gameObject);
+            }
+        }
+    }
+
+    private void createTrafficRules(int ux, int uz, int width, int depth, TrafficRule rule) {
+        for (var x = ux; x < ux + width; x++) {
+            for (var z = uz; z < uz + depth; z++) {
+                SetTrafficRule(x, z, rule);
             }
         }
     }

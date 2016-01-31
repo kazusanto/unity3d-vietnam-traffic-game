@@ -98,6 +98,9 @@ public class CabController : MonoBehaviour
         transform.Rotate(new Vector3(0, steering * m_MaxSteering * m_speed, 0));
         var forward = transform.forward.normalized;
         transform.Translate(forward * m_speed * m_MaxSpeed * Time.deltaTime, Space.World);
+        if (transform.position.y < 0.0f || transform.position.y > 0.15f) {
+            transform.Translate(Vector3.down * transform.position.y);
+        }
         m_animator.SetFloat("direction", steering);
         m_animator.SetFloat("speed", m_speed);
     }

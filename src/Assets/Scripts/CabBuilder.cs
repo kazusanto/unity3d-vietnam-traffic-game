@@ -5,6 +5,9 @@ public class CabBuilder : MonoBehaviour {
 
     [SerializeField] private GameObject m_Prefab = null;
     [SerializeField] private float m_Interval = 1.0f;
+    [SerializeField] private float m_Distance = 60.0f;
+    [SerializeField] private float m_Forward = 30.0f;
+    [SerializeField] private float m_Backword = -20.0f;
 
     private float m_time = 0;
     private GameObject m_target = null;
@@ -24,9 +27,9 @@ public class CabBuilder : MonoBehaviour {
             vehicle.transform.SetParent(transform);
             var x = m_target.transform.position.x;
             var z = m_target.transform.position.z;
-            var rx = Random.Range(-3.0f, 30.0f);
+            var rx = Random.Range(m_Backword, m_Forward);
             var vx = x + rx;
-            var vz = z + 50.0f + Random.Range(0.0f, 10.0f);
+            var vz = z + m_Distance;
             vehicle.transform.position = new Vector3(vx, 0.0f, vz);
         }
 	}
