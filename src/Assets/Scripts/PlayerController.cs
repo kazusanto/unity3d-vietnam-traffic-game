@@ -117,7 +117,7 @@ public class PlayerController : MonoBehaviour {
     }
 
     void OnCollisionEnter(Collision other) {
-        if (!s_gameover &&  other.gameObject.CompareTag("Vehicle")) {
+        if (other.gameObject.CompareTag("Vehicle")) {
             m_hit = true;
         }
      }

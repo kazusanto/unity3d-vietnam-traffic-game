@@ -131,6 +131,10 @@ public class CabDrive : MonoBehaviour {
 
     private Vector2 getRoadDirection(float x, float z, Vector2 vec, float speed)
     {
+        var delta = new Vector2(
+            Mathf.Abs(m_target.transform.position.x - transform.position.x),
+            Mathf.Abs(m_target.transform.position.z - transform.position.z)
+        );
         Vector2 dist = vec.normalized * 4.0f * speed;
         x += dist.x;
         z += dist.y;
@@ -138,16 +142,32 @@ public class CabDrive : MonoBehaviour {
         StageBuilder.TrafficRule choose = rule;
         switch (rule) {
         case StageBuilder.TrafficRule.DownLeft:
-            choose = Random.Range(0, 2) == 0 ? StageBuilder.TrafficRule.Down : StageBuilder.TrafficRule.Left;
+            if (delta.y > delta.x) {
+                choose = StageBuilder.TrafficRule.Down;
+            } else {
+                choose = Random.Range(0, 2) == 0 ? StageBuilder.TrafficRule.Down : StageBuilder.TrafficRule.Left;
+            }
             break;
         case StageBuilder.TrafficRule.DownRight:
-            choose = Random.Range(0, 2) == 0 ? StageBuilder.TrafficRule.Down : StageBuilder.TrafficRule.Right;
+            if (delta.y > delta.x) {
+                choose = StageBuilder.TrafficRule.Down;
+            } else {
+                choose = Random.Range(0, 2) == 0 ? StageBuilder.TrafficRule.Down : StageBuilder.TrafficRule.Right;
+            }
             break;
         case StageBuilder.TrafficRule.UpLeft:
-            choose = Random.Range(0, 2) == 0 ? StageBuilder.TrafficRule.Up : StageBuilder.TrafficRule.Left;
+            if (delta.y > delta.x) {
+                choose = StageBuilder.TrafficRule.Up;
+            } else {
+                choose = Random.Range(0, 2) == 0 ? StageBuilder.TrafficRule.Up : StageBuilder.TrafficRule.Left;
+            }
             break;
         case StageBuilder.TrafficRule.UpRight:
-            choose = Random.Range(0, 2) == 0 ? StageBuilder.TrafficRule.Up : StageBuilder.TrafficRule.Right;
+            if (delta.y > delta.x) {
+                choose = StageBuilder.TrafficRule.Up;
+            } else {
+                choose = Random.Range(0, 2) == 0 ? StageBuilder.TrafficRule.Up : StageBuilder.TrafficRule.Right;
+            }
             break;
         }
         Vector2 dir = Vector2.zero;
