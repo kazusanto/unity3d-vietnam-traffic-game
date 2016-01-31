@@ -13,6 +13,7 @@ public class PlayerController : MonoBehaviour {
     [SerializeField] private string[] m_Foots = { "LeftToeBase", "RightToeBase" };
     [SerializeField] private AudioClip m_Footstep = null;
     [SerializeField] private AudioClip m_Crash = null;
+    [SerializeField] private bool m_isDemoPlay = false;
 
     private bool m_hit = false;
     private ThirdPersonCharacter m_controller = null;
@@ -46,7 +47,9 @@ public class PlayerController : MonoBehaviour {
         float heading = 0.0f;
         if (m_hit) {
             m_hit = false;
-            s_gameover = true;
+            if (!m_isDemoPlay) {
+                s_gameover = true;
+            }
             if (m_controller) {
                 m_controller.Move(Vector3.zero, false, true);
             }
@@ -81,6 +84,10 @@ public class PlayerController : MonoBehaviour {
                 Move(Vector3.zero, false, false);
             }
             s_score = (int)transform.position.x;
+            transform.position = new Vector3(transform.position.x, transform.position.y, 0.0f);
+            if (transform.position.y > 0.05) {
+                heading = 0.0f;
+            }
         }
         if (m_controller) {
             m_animator.SetFloat("HeadDir", heading);
@@ -97,7 +104,7 @@ public class PlayerController : MonoBehaviour {
         if (!s_gameover && direction.magnitude > 0.0f) {
             bool footstep = false;
             for (var i = 0; i < m_foots.Length; i++) {
-                var y = m_foots[i].position.y;
+                var y = m_foots[i].position.y - transform.position.y;
                 if (m_footYs[i] >= 0.01 && y < 0.01) {
                     footstep = true;
                 }
