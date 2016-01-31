@@ -29,6 +29,7 @@ public class GroundController : MonoBehaviour {
         GameObject[] result = new GameObject[num];
         for (var i = 0; i < num; i++) {
             var obj = Instantiate(m_Ground);
+            obj.transform.SetParent(transform);
             obj.transform.localScale = new Vector3(size / 10.0f, 1.0f, size / 10.0f);
             obj.transform.position = new Vector3(size * i - ((float)num / 2.0f), 0.0f, z);
             result[i] = obj;

@@ -133,19 +133,6 @@ public class StageBuilder : MonoBehaviour {
         }
         lands.Sort();
 
-        var str = "";
-        if (m_reservedLands != null) {
-            m_reservedLands.ForEach(v => {
-                str += "(" + v.begin.ToString() + "," + v.end.ToString() + "),";
-            });
-            print("reservedLands:" + str);
-        }
-        str = "";
-        foreach (var v in lands) {
-            str += v.ToString() + ",";
-        }
-        print("lands:" + str);
-
         List<LandRange> reserved = new List<LandRange>();
         var uz = m_Near;
         var landWidth2 = landWidth + roadWidth + LandWidth(m_index + 1);
@@ -197,6 +184,13 @@ public class StageBuilder : MonoBehaviour {
     }
 
     private void removePassed() {
+        var minx = m_player.transform.position.x - (m_Far * m_UnitSize);
+        for (var i = 0; i < transform.childCount; i++) {
+            var child = transform.GetChild(i);
+            if (child.position.x < minx) {
+                GameObject.Destroy(child.gameObject);
+            }
+        }
     }
 
     private void createLand(int ux, int uz, int width, int depth) {

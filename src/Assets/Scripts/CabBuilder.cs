@@ -21,6 +21,7 @@ public class CabBuilder : MonoBehaviour {
         if (m_time >= m_Interval) {
             m_time = 0.0f;
             var vehicle = GameObject.Instantiate(m_Prefab);
+            vehicle.transform.SetParent(transform);
             var x = m_target.transform.position.x;
             var z = m_target.transform.position.z;
             var rx = Random.Range(-3.0f, 30.0f);
