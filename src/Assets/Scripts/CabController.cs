@@ -89,8 +89,9 @@ public class CabController : MonoBehaviour
         if (handbrake > 0.0f || footbrake > 0.0f) {
             m_speed -= (handbrake + footbrake) * m_Brake;
         }
-        if (m_speed > 1.0f) {
-            m_speed = 1.0f;
+        var max = 1.0f - Mathf.Abs(steering) * 0.3f;
+        if (m_speed > max) {
+            m_speed = max;
         }
         if (m_speed < 0.0f) {
             m_speed = 0.0f;

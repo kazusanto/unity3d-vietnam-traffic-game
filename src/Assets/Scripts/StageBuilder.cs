@@ -50,29 +50,36 @@ public class StageBuilder : MonoBehaviour {
     private Dictionary<int, List<TrafficRule>> m_trafficRules = new Dictionary<int, List<TrafficRule>>();
 
     public TrafficRule GetTrafficRule(float x, float z) {
-        bool outside = false;
+        bool beyond = false;
         TrafficRule rule = TrafficRule.Stop;
         float unit_harf = (float)m_UnitSize / 2.0f;
-        int ux = (int)((x + unit_harf) / m_UnitSize);
+        int ux = (int)((x + unit_harf) / m_UnitSize) - m_Backward;
         int uz = (int)((z + unit_harf) / m_UnitSize) - m_Near;
         if (uz >= m_Far - m_Near) {
-            outside = true;
+            beyond = true;
             uz = m_Far - m_Near - 1;
         }
-        List<TrafficRule> rules;
-        if (m_trafficRules.TryGetValue(ux, out rules)) {
+        if (uz < 0 || ux < 0) {
+            return TrafficRule.Stop;
+        }
+        if (m_trafficRules.ContainsKey(ux)) {
+            var rules = m_trafficRules[ux];
             rule = uz < rules.Count ? rules[uz] : TrafficRule.Stop;
         }
-        if (outside && rule == TrafficRule.Stop) { 
+        if (beyond && rule == TrafficRule.Stop) { 
             rule = TrafficRule.Right;
         }
         return rule;
     }
 
     private void SetTrafficRule(int ux, int uz, TrafficRule rule) {
+        ux -= m_Backward;
         uz -= m_Near;
-        List<TrafficRule> rules = null;
-        if (m_trafficRules.TryGetValue(ux, out rules)) {
+        if (uz < 0 || ux < 0) {
+            return;
+        }
+        if (m_trafficRules.ContainsKey(ux)) {
+            var rules = m_trafficRules[ux];
             if (uz < rules.Count) {
                 rules[uz] = rule;
             } else {
@@ -81,7 +88,7 @@ public class StageBuilder : MonoBehaviour {
             }
             m_trafficRules[ux] = rules;
         } else {
-            rules = new List<TrafficRule>();
+            var rules = new List<TrafficRule>();
             rules.AddRange(new TrafficRule[m_Far - m_Near]);
             rules[uz] = rule;
             m_trafficRules.Add(ux, rules);

@@ -53,10 +53,10 @@ public class CabDrive : MonoBehaviour {
             var targetangle = Vector2.Angle(mydir2d, targetdir2d);
             var roadangle = Vector2.Angle(mydir2d, roaddir2d);
             var distance = Vector2.Distance(mypos2d, targetpos2d);
-            if (targetangle < 5.0f && distance < 20.0f) {
+            if (targetangle < 5.0f && distance < 15.0f) {
                 m_near = true;
                 var targetcross = mydir2d.x * targetdir2d.y - mydir2d.y * targetdir2d.x;
-                m_steering_to += (targetcross > 0.0f ? 1.0f : -1.0f) * Random.Range(0.05f, 0.1f);
+                m_steering_to += (targetcross > 0.0f ? 1.0f : -1.0f) * Random.Range(0.05f, 0.5f);
                 m_accel = 0.1f;
             } else if (!roaddir2d.Equals(Vector2.zero)) {
                 m_near = false;
