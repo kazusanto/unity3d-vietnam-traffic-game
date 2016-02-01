@@ -76,7 +76,7 @@ public class CabDrive : MonoBehaviour {
                 }
             } else {
                 m_accel = 0.0f;
-                m_brake = 0.1f;
+                m_brake = 1.0f;
                 Destroy(gameObject, 3.0f);
             }
             if (targetangle > 120) {
@@ -130,10 +130,11 @@ public class CabDrive : MonoBehaviour {
 
     private Vector2 getRoadDirection(float x, float z, Vector2 vec, float speed)
     {
-        var delta = new Vector2(
-            Mathf.Abs(m_target.transform.position.x - transform.position.x),
-            Mathf.Abs(m_target.transform.position.z - transform.position.z)
-        );
+//        var delta = new Vector2(
+//            Mathf.Abs(m_target.transform.position.x - transform.position.x),
+//            Mathf.Abs(m_target.transform.position.z - transform.position.z)
+//        );
+        var delta = new Vector2(0, 0);
         Vector2 dist = vec.normalized * 4.0f * speed;
         x += dist.x;
         z += dist.y;

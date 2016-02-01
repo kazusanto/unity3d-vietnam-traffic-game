@@ -14,6 +14,7 @@ public class PlayerController : MonoBehaviour {
     [SerializeField] private AudioClip m_Footstep = null;
     [SerializeField] private AudioClip m_Crash = null;
     [SerializeField] private bool m_isDemoPlay = false;
+    [SerializeField] private string m_StageTag = "Stage";
 
     private bool m_hit = false;
     private ThirdPersonCharacter m_controller = null;
@@ -21,6 +22,7 @@ public class PlayerController : MonoBehaviour {
     private AudioSource m_audio = null;
     private Transform[] m_foots = null;
     private float[] m_footYs = null;
+    private StageBuilder m_stage = null;
 
     // Use this for initialization
 	void Start () {
@@ -30,6 +32,7 @@ public class PlayerController : MonoBehaviour {
         m_controller = GetComponent<ThirdPersonCharacter>();
         m_animator = GetComponent<Animator>();
         m_audio = gameObject.GetComponent<AudioSource>();
+        m_stage = GameObject.FindGameObjectWithTag(m_StageTag).GetComponent<StageBuilder>();
 
         if (!m_controller) {
             m_animator.SetFloat("direction", -1.0f);
@@ -86,10 +89,13 @@ public class PlayerController : MonoBehaviour {
             s_score = (int)transform.position.x;
             transform.position = new Vector3(transform.position.x, transform.position.y, 0.0f);
             if (transform.position.y > 0.05) {
-                heading = 0.0f;
+                heading = -0.8f;
             }
         }
         if (m_controller) {
+            if (m_stage.isReverseRoad()) {
+                heading = -heading;
+            }
             m_animator.SetFloat("HeadDir", heading);
         }
 	}

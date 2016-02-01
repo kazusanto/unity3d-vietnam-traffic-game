@@ -10,6 +10,7 @@ public class GroundController : MonoBehaviour {
     private GameObject player = null;
     private GameObject[] m_nearTiles;
     private GameObject[] m_farTiles;
+    private GameObject[] m_reverseTiles;
 
 	// Use this for initialization
 	void Start () {
@@ -17,12 +18,14 @@ public class GroundController : MonoBehaviour {
 
         m_nearTiles = buildObjects(3, m_NearSize, 0.0f);
         m_farTiles = buildObjects(3, m_FarSize, (m_NearSize + m_FarSize) / 2.0f);
+        m_reverseTiles = buildObjects(3, m_FarSize, -(m_NearSize + m_FarSize) / 2.0f);
 	}
 	
 	// Update is called once per frame
 	void Update () {
         updateTiles(m_nearTiles, m_NearSize);
         updateTiles(m_farTiles, m_FarSize);
+        updateTiles(m_reverseTiles, m_FarSize);
     }
 
     private GameObject[] buildObjects(int num, float size, float z) {
