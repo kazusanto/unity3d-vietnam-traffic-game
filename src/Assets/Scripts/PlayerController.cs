@@ -47,8 +47,9 @@ public class PlayerController : MonoBehaviour {
         float heading = 0.0f;
         if (m_hit) {
             m_hit = false;
-            if (!m_isDemoPlay) {
+            if (!m_isDemoPlay && !s_gameover) {
                 s_gameover = true;
+                m_audio.PlayOneShot(m_Crash);
             }
             if (m_controller) {
                 m_controller.Move(Vector3.zero, false, true);
@@ -57,9 +58,6 @@ public class PlayerController : MonoBehaviour {
                 m_animator.SetFloat("direction", 0.0f);
                 m_animator.SetFloat("speed", 0.0f);
                 m_animator.SetTrigger("onHit");
-            }
-            if (!s_gameover) {
-                m_audio.PlayOneShot(m_Crash);
             }
         } else if (s_gameover) {
             if (m_controller) {
