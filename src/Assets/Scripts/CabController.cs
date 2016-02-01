@@ -6,6 +6,7 @@ public class CabController : MonoBehaviour
     [SerializeField] private bool m_isPlayer = false;
     [SerializeField] private float m_MaxSpeed = 5.0f;
     [SerializeField] private float m_MaxSteering = 1.5f;
+    [SerializeField] private float m_Accel = 0.1f;
     [SerializeField] private float m_Brake = 0.1f;
     [SerializeField] private GameObject[] m_Baggages = null;
     [SerializeField] private string m_BaggageOriginName = "CabBody";
@@ -85,9 +86,9 @@ public class CabController : MonoBehaviour
         if (steering < -1.0f) {
             steering = -1.0f;
         }
-        m_speed += accel;
+        m_speed += accel * m_Accel;
         if (handbrake > 0.0f || footbrake > 0.0f) {
-            m_speed -= (handbrake + footbrake) * m_Brake;
+            m_speed -= (handbrake + footbrake) / 2.0f * m_Brake;
         }
         var max = 1.0f - Mathf.Abs(steering) * 0.3f;
         if (m_speed > max) {

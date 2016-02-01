@@ -57,14 +57,13 @@ public class CabDrive : MonoBehaviour {
                 m_near = true;
                 var targetcross = mydir2d.x * targetdir2d.y - mydir2d.y * targetdir2d.x;
                 m_steering_to += (targetcross > 0.0f ? 1.0f : -1.0f) * Random.Range(0.05f, 0.5f);
-                m_accel = 0.1f;
+                m_accel = 0.5f;
             } else if (!roaddir2d.Equals(Vector2.zero)) {
                 m_near = false;
                 if (roadangle > 5.0f) {
                     var roadcross = mydir2d.x * roaddir2d.y - mydir2d.y * roaddir2d.x;
                     m_steering_to += (roadcross > 0.0f ? -1.0f : 1.0f) * Random.Range(0.4f, 0.8f);
-                    m_accel = 0.05f;
-                    m_brake = 0.0f;
+                    m_accel = 0.5f;
                     if (roadangle < 10.0f) {
                         m_count = Random.Range(1, 2);
                     } else if (roadangle < 20.0f) {
@@ -76,9 +75,9 @@ public class CabDrive : MonoBehaviour {
                     }
                 }
             } else {
-                m_accel = 0.1f;
+                m_accel = 0.0f;
                 m_brake = 0.1f;
-                Destroy(gameObject, 2.0f);
+                Destroy(gameObject, 3.0f);
             }
             if (targetangle > 120) {
                 Destroy(gameObject, 2.0f);
