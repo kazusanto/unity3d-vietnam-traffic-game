@@ -16,9 +16,9 @@ public class GroundController : MonoBehaviour {
 	void Start () {
         player = GameObject.FindGameObjectWithTag("Player");
 
-        m_nearTiles = buildObjects(3, m_NearSize, 0.0f);
         m_farTiles = buildObjects(3, m_FarSize, (m_NearSize + m_FarSize) / 2.0f);
         m_reverseTiles = buildObjects(3, m_FarSize, -(m_NearSize + m_FarSize) / 2.0f);
+        m_nearTiles = buildObjects(3, m_NearSize, 0.0f);
 	}
 	
 	// Update is called once per frame

@@ -23,6 +23,15 @@ public class PlayerController : MonoBehaviour {
     private Transform[] m_foots = null;
     private float[] m_footYs = null;
     private StageBuilder m_stage = null;
+    private float m_looking = 0.0f;
+
+    public float GetLookingFor() {
+        return m_looking;
+    }
+
+    public StageBuilder.TrafficRule GetTrafficRule() {
+        return m_stage.GetTrafficRule(transform.position.x, transform.position.z);
+    }
 
     // Use this for initialization
 	void Start () {
@@ -47,7 +56,7 @@ public class PlayerController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        float heading = 0.0f;
+        m_looking = 0.0f;
         if (m_hit) {
             m_hit = false;
             if (!m_isDemoPlay && !s_gameover) {
@@ -80,23 +89,23 @@ public class PlayerController : MonoBehaviour {
                 moving = true;
             }
             if (moving) {
-                heading = -0.6f;
+                m_looking = -0.6f;
                 Move(new Vector3(m_Speed, 0.0f, 0.0f), false, false);
             } else {
-                heading = -1.0f;
+                m_looking = -1.0f;
                 Move(Vector3.zero, false, false);
             }
             s_score = (int)transform.position.x;
             transform.position = new Vector3(transform.position.x, transform.position.y, 0.0f);
             if (transform.position.y > 0.05) {
-                heading = -0.8f;
+                m_looking = -0.8f;
             }
         }
         if (m_controller) {
             if (m_stage.isReverseRoad()) {
-                heading = -heading;
+                m_looking = -m_looking;
             }
-            m_animator.SetFloat("HeadDir", heading);
+            m_animator.SetFloat("HeadDir", m_looking);
         }
 	}
 

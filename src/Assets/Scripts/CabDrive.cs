@@ -135,7 +135,7 @@ public class CabDrive : MonoBehaviour {
 //            Mathf.Abs(m_target.transform.position.z - transform.position.z)
 //        );
         var delta = new Vector2(0, 0);
-        Vector2 dist = vec.normalized * 4.0f * speed;
+        Vector2 dist = vec.normalized * 3.0f * speed;
         x += dist.x;
         z += dist.y;
         StageBuilder.TrafficRule rule = m_stage.GetTrafficRule(x, z);
