@@ -56,7 +56,7 @@ public class CabDrive : MonoBehaviour {
             if (targetangle < 5.0f && distance < 15.0f) {
                 m_near = true;
                 var targetcross = mydir2d.x * targetdir2d.y - mydir2d.y * targetdir2d.x;
-                m_steering_to += (targetcross > 0.0f ? 1.0f : -1.0f) * Random.Range(0.05f, 0.5f);
+                m_steering_to += (targetcross > 0.0f ? 1.0f : -1.0f) * Random.Range(0.05f, 0.1f);
                 m_accel = 0.5f;
             } else if (!roaddir2d.Equals(Vector2.zero)) {
                 m_near = false;
@@ -113,8 +113,8 @@ public class CabDrive : MonoBehaviour {
                 if (Random.Range(1, 4) == 1) {
                     m_hit = true;
                     m_count = Random.Range(5, 20);
-                    m_audio.pitch = 1.0f;
-                    m_audio.PlayOneShot(m_Idle);
+                    // m_audio.pitch = 1.0f;
+                    // m_audio.PlayOneShot(m_Idle);
                 } else {
                     var mydir2d = new Vector2(transform.forward.x, transform.forward.z);
                     var mypos2d = new Vector2(transform.position.x, transform.position.z);

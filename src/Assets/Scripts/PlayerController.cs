@@ -22,6 +22,7 @@ public class PlayerController : MonoBehaviour {
     private AudioSource m_audio = null;
     private Transform[] m_foots = null;
     private float[] m_footYs = null;
+    private bool m_footstep_odd = false;
     private StageBuilder m_stage = null;
     private float m_looking = 0.0f;
 
@@ -61,6 +62,7 @@ public class PlayerController : MonoBehaviour {
             m_hit = false;
             if (!m_isDemoPlay && !s_gameover) {
                 s_gameover = true;
+                m_audio.pitch = 1.0f;
                 m_audio.PlayOneShot(m_Crash);
             }
             if (m_controller) {
@@ -126,6 +128,8 @@ public class PlayerController : MonoBehaviour {
                 m_footYs[i] = y;
             }
             if (footstep) {
+                m_footstep_odd = !m_footstep_odd;
+                m_audio.pitch = m_footstep_odd ? 1.0f : 1.1f;
                 m_audio.PlayOneShot(m_Footstep);
             }
         }
