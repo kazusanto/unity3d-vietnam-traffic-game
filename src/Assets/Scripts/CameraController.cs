@@ -11,10 +11,10 @@ public class CameraController : MonoBehaviour {
     };
 
     [SerializeField] private float m_Distance = 5.0f;
-    [SerializeField] private float m_Tilt = 12.0f;
-    [SerializeField] private float m_Rise = 1.5f;
-    [SerializeField] private float m_Shift = 1.0f;
-    [SerializeField] private int m_TransitionFrames = 80;
+    [SerializeField] private float m_Tilt = 10.0f;
+    [SerializeField] private float m_Rise = 1f;
+    [SerializeField] private float m_Shift = 1.5f;
+    [SerializeField] private float m_TransitDuration = 1.5f;
 
     private GameObject m_target = null;
     private PlayerController m_player = null;
@@ -28,7 +28,7 @@ public class CameraController : MonoBehaviour {
     private Vector3 m_currentAngle;
     private Status m_status = Status.Normal;
     private Status m_status_to = Status.Undefine;
-    private int m_count = 0;
+    private float m_TransitBegin = 0.0f;
 
     // Use this for initialization
 	void Start () {
@@ -52,7 +52,7 @@ public class CameraController : MonoBehaviour {
         m_currentAngle = m_normalAngle;
         m_status = Status.Normal;
         m_status_to = Status.Undefine;
-        m_count = 0;
+        m_TransitBegin = 0.0f;
 	}
 	
 	// Update is called once per frame
@@ -69,7 +69,7 @@ public class CameraController : MonoBehaviour {
                 if (m_status != Status.Transition) {
                     m_status_to = Status.Transition;
                 }
-                m_count = m_TransitionFrames;
+                m_TransitBegin = Time.time;
             }
         }
         switch (m_status_to) {
@@ -86,12 +86,16 @@ public class CameraController : MonoBehaviour {
             angle = m_transitionAngle;
             break;
         }
-        if (m_count > 0) {
-            float t = (float)(m_TransitionFrames - m_count) / (float)m_TransitionFrames;
-            pos = Vector3.Lerp(m_currentPosition, pos, Mathf.SmoothStep(0.0f, 1.0f, Mathf.SmoothStep(0.0f, 1.0f, t)));
-            angle = Vector3.Lerp(m_currentAngle, angle, Mathf.SmoothStep(0.0f, 1.0f, Mathf.SmoothStep(0.0f, 1.0f, t)));
-            if (--m_count <= 0) {
-                m_count = 0;
+        if (m_TransitBegin > 0.0f) {
+            float t = (Time.time - m_TransitBegin) / m_TransitDuration;
+            if (t > 1.0f) {
+                t = 1.0f;
+            }
+            t = Mathf.SmoothStep(0.0f, 1.0f, Mathf.SmoothStep(0.0f, 1.0f, t));
+            pos = Vector3.Lerp(m_currentPosition, pos, t);
+            angle = Vector3.Lerp(m_currentAngle, angle, t);
+            if (t == 1.0f) {
+                m_TransitBegin = 0.0f;
                 m_status = m_status_to;
                 m_status_to = Status.Undefine;
                 m_currentPosition = pos;
@@ -100,7 +104,9 @@ public class CameraController : MonoBehaviour {
         } else {
             m_status_to = Status.Undefine;
         }
-        transform.position = m_player.transform.position + pos;
+        pos.x += m_player.transform.position.x;
+        pos.z += m_player.transform.position.z;
+        transform.position = pos;
         transform.eulerAngles = angle;
     }
 }
