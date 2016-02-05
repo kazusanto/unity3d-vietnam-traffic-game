@@ -49,6 +49,7 @@
      <Compile Include="Assets\Scripts\CabController.cs" />
      <Compile Include="Assets\Scripts\CabDrive.cs" />
      <Compile Include="Assets\Scripts\CameraController.cs" />
+     <Compile Include="Assets\Scripts\Common.cs" />
      <Compile Include="Assets\Scripts\GameOverController.cs" />
      <Compile Include="Assets\Scripts\GroundController.cs" />
      <Compile Include="Assets\Scripts\PlayerController.cs" />

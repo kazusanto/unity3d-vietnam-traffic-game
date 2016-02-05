@@ -25,6 +25,7 @@ public class PlayerController : MonoBehaviour {
     private bool m_footstep_odd = false;
     private StageBuilder m_stage = null;
     private float m_looking = 0.0f;
+    private Vector3 m_offset;
 
     public float GetLookingFor() {
         return m_looking;
@@ -53,6 +54,8 @@ public class PlayerController : MonoBehaviour {
             m_foots[i] = searchTransform(transform, m_Foots[i]);
             m_footYs[i] = m_foots[i].position.y;
         }
+        m_offset = new Vector3(m_stage.UnitSize / 2.0f, 0.0f, m_stage.UnitSize / 2.0f);
+        transform.position = m_offset;
 	}
 	
 	// Update is called once per frame
@@ -98,7 +101,7 @@ public class PlayerController : MonoBehaviour {
                 Move(Vector3.zero, false, false);
             }
             s_score = (int)transform.position.x;
-            transform.position = new Vector3(transform.position.x, transform.position.y, 0.0f);
+            transform.position = new Vector3(transform.position.x, transform.position.y, m_offset.z);
             if (transform.position.y > 0.05) {
                 m_looking = -0.8f;
             }

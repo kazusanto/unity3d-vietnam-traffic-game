@@ -20,6 +20,8 @@ public class CabDrive : MonoBehaviour {
     private float m_horn_pitch = 1.0f;
     private float m_accel = 0.0f;
     private float m_brake = 0.0f;
+    private bool m_vertman = false;
+    private bool m_inited = false;
 
 	// Use this for initialization
 	void Start() {
@@ -28,10 +30,20 @@ public class CabDrive : MonoBehaviour {
         m_stage = GameObject.FindGameObjectWithTag(m_StageTag).GetComponent<StageBuilder>();
         m_audio = gameObject.GetComponent<AudioSource>();
         m_horn_pitch = (Random.Range(0, 2) == 0) ? 1.0f : 1.1f;
+        m_vertman = Random.Range(0, 2) == 0;
 	}
 	
+    private void init() {
+        var angle = getRoadAngle(transform.position.x, transform.position.z, Vector3.zero, 0.0f);
+        transform.eulerAngles = new Vector3(0.0f, angle, 0.0f);
+    }
+
 	// Update is called once per frame
 	void Update() {
+        if (!m_inited) {
+            m_inited = true;
+            init();
+        }
         var mydir2d = new Vector2(transform.forward.x, transform.forward.z);
         var mypos2d = new Vector2(transform.position.x, transform.position.z);
         var targetpos2d = new Vector2(m_target.transform.position.x, m_target.transform.position.z);
@@ -56,7 +68,7 @@ public class CabDrive : MonoBehaviour {
             if (targetangle < 5.0f && distance < 15.0f) {
                 m_near = true;
                 var targetcross = mydir2d.x * targetdir2d.y - mydir2d.y * targetdir2d.x;
-                m_steering_to += (targetcross > 0.0f ? 1.0f : -1.0f) * Random.Range(0.05f, 0.1f);
+                m_steering_to += (targetcross > 0.0f ? 1.0f : -1.0f) * Random.Range(0.05f, 0.2f);
                 m_accel = 0.5f;
             } else if (!roaddir2d.Equals(Vector2.zero)) {
                 m_near = false;
@@ -77,9 +89,6 @@ public class CabDrive : MonoBehaviour {
             } else {
                 m_accel = 0.0f;
                 m_brake = 1.0f;
-                Destroy(gameObject, 3.0f);
-            }
-            if (targetangle > 120) {
                 Destroy(gameObject, 2.0f);
             }
             if (Random.Range(0, 20) == 0) {
@@ -99,12 +108,20 @@ public class CabDrive : MonoBehaviour {
             m_audio.pitch = m_horn_pitch;
             m_audio.PlayOneShot(m_Horn);
         }
-//        if (Vector2.Dot(mydir2d, targetdir2d) < 0.0f) {
-//            Destroy(gameObject, 2.0f);
-//        }
         if (m_cab) {
             m_cab.Move(m_steering, m_accel, m_brake, m_brake);
-        }	
+        }   
+        var view_pos = Camera.main.WorldToViewportPoint(transform.position);
+        if (//view_pos.x < -0.5f || view_pos.x > 1.5f ||
+            //view_pos.y < -0.5f || view_pos.y > 1.5f ||
+            view_pos.z < -0.5f) {
+            if (Vector2.Dot(mydir2d, targetdir2d) < 0.0f) {
+                Destroy(gameObject, 0.0f);
+            }
+        }
+        if (transform.position.z < -61.0f || transform.position.z > 61.0f) {
+            Destroy(gameObject, 2.0f);
+        }
     }
 
     void OnCollisionEnter(Collision other) {
@@ -130,46 +147,7 @@ public class CabDrive : MonoBehaviour {
 
     private Vector2 getRoadDirection(float x, float z, Vector2 vec, float speed)
     {
-//        var delta = new Vector2(
-//            Mathf.Abs(m_target.transform.position.x - transform.position.x),
-//            Mathf.Abs(m_target.transform.position.z - transform.position.z)
-//        );
-        var delta = new Vector2(0, 0);
-        Vector2 dist = vec.normalized * 3.0f * speed;
-        x += dist.x;
-        z += dist.y;
-        StageBuilder.TrafficRule rule = m_stage.GetTrafficRule(x, z);
-        StageBuilder.TrafficRule choose = rule;
-        switch (rule) {
-        case StageBuilder.TrafficRule.DownLeft:
-            if (delta.y > delta.x) {
-                choose = StageBuilder.TrafficRule.Down;
-            } else {
-                choose = Random.Range(0, 2) == 0 ? StageBuilder.TrafficRule.Down : StageBuilder.TrafficRule.Left;
-            }
-            break;
-        case StageBuilder.TrafficRule.DownRight:
-            if (delta.y > delta.x) {
-                choose = StageBuilder.TrafficRule.Down;
-            } else {
-                choose = Random.Range(0, 2) == 0 ? StageBuilder.TrafficRule.Down : StageBuilder.TrafficRule.Right;
-            }
-            break;
-        case StageBuilder.TrafficRule.UpLeft:
-            if (delta.y > delta.x) {
-                choose = StageBuilder.TrafficRule.Up;
-            } else {
-                choose = Random.Range(0, 2) == 0 ? StageBuilder.TrafficRule.Up : StageBuilder.TrafficRule.Left;
-            }
-            break;
-        case StageBuilder.TrafficRule.UpRight:
-            if (delta.y > delta.x) {
-                choose = StageBuilder.TrafficRule.Up;
-            } else {
-                choose = Random.Range(0, 2) == 0 ? StageBuilder.TrafficRule.Up : StageBuilder.TrafficRule.Right;
-            }
-            break;
-        }
+        StageBuilder.TrafficRule choose = chooseRoadRule(x, z, vec, speed);
         Vector2 dir = Vector2.zero;
         switch (choose) {
         case StageBuilder.TrafficRule.Down:
@@ -179,12 +157,57 @@ public class CabDrive : MonoBehaviour {
             dir = new Vector2(0.0f, 1.0f);
             break;
         case StageBuilder.TrafficRule.Right:
-            dir = new Vector2(1.0f, 0.0f);
+            dir = new Vector2(1.0f, 1.0f);
             break;
         case StageBuilder.TrafficRule.Left:
-            dir = new Vector2(-1.0f, -0.0f);
+            dir = new Vector2(-1.0f, 0.0f);
             break;
         }
         return dir;
+    }
+
+    private float getRoadAngle(float x, float z, Vector2 vec, float speed)
+    {
+        StageBuilder.TrafficRule choose = chooseRoadRule(x, z, vec, speed);
+        float angle = 0.0f;
+        switch (choose) {
+        case StageBuilder.TrafficRule.Down:
+            angle = 180.0f;
+            break;
+        case StageBuilder.TrafficRule.Up:
+            angle = 0.0f;
+            break;
+        case StageBuilder.TrafficRule.Right:
+            angle = 90.0f;
+            break;
+        case StageBuilder.TrafficRule.Left:
+            angle = -90.0f;
+            break;
+        }
+        return angle;
+    }
+
+    private StageBuilder.TrafficRule chooseRoadRule(float x, float z, Vector2 vec, float speed)
+    {
+        Vector2 forward = vec.normalized * 3.0f * speed;
+        x += forward.x;
+        z += forward.y;
+        StageBuilder.TrafficRule rule = m_stage.GetTrafficRule(x, z);
+        StageBuilder.TrafficRule choose = rule;
+        switch (rule) {
+        case StageBuilder.TrafficRule.DownLeft:
+            choose = m_vertman ? StageBuilder.TrafficRule.Down : StageBuilder.TrafficRule.Left;
+            break;
+        case StageBuilder.TrafficRule.DownRight:
+            choose = m_vertman ? StageBuilder.TrafficRule.Down : StageBuilder.TrafficRule.Right;
+            break;
+        case StageBuilder.TrafficRule.UpLeft:
+            choose = m_vertman ? StageBuilder.TrafficRule.Up : StageBuilder.TrafficRule.Left;
+            break;
+        case StageBuilder.TrafficRule.UpRight:
+            choose = m_vertman ? StageBuilder.TrafficRule.Up : StageBuilder.TrafficRule.Right;
+            break;
+        }
+        return choose;
     }
 }

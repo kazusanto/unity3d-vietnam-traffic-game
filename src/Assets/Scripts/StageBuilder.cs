@@ -1,17 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Common;
+
+using LandRange = Common.Range<int>;
 
 public class StageBuilder : MonoBehaviour {
-
-    private struct LandRange {
-        public LandRange(int begin, int end) {
-            this.begin = begin; 
-            this.end = end; 
-        }
-        public int begin;
-        public int end;
-    }
 
     public enum TrafficRule {
         Stop          = 0,
@@ -23,7 +17,13 @@ public class StageBuilder : MonoBehaviour {
         Down          = 8,
         DownLeft      = 9,
         DownRight     = 10,
-    };
+    }
+
+    private struct Unit {
+        public int x;
+        public int y;
+        public Unit(int ux, int uy) { x = ux; y = uy; }
+    }
 
     [SerializeField] private GameObject m_Land = null;
     [SerializeField] private GameObject m_Sidewalk = null;
@@ -42,16 +42,53 @@ public class StageBuilder : MonoBehaviour {
     [SerializeField] private bool[] m_ReverseRoads = { false, false, true };
     [SerializeField] private bool m_isLoop = true;
 
+    public float UnitSize { get { return m_UnitSize; } }
+    public float Constructed { get { return worldForUnit(m_next, 0).x; } }
+    private int UnitHeight { get { return m_Far - m_Near; } }
+    private int UnitWidth  { get { return m_Forward - m_Backward; } }
+    private int CentralUY { get { return -m_Near; } }
+
     private GameObject m_player = null;
-    private float m_min = 0;
-    private float m_max = 0;
     private int m_next = 0;
     private int m_index = 0;
+    private int m_fstep = 0;
+    private int m_bstep = 0;
     private List<int> m_prevLands = null;
     private List<LandRange> m_reservedLands = null;
     private GameObject m_landBase = null;
     private Dictionary<int, List<TrafficRule>> m_trafficRules = new Dictionary<int, List<TrafficRule>>();
     private Dictionary<int, List<GameObject>> m_trafficArrows = new Dictionary<int, List<GameObject>>();
+    private bool m_inited = false;
+
+    private Dictionary<TrafficRule, float> rotationForRule = new Dictionary<TrafficRule, float>() {
+        { TrafficRule.Stop,        0.0f },
+        { TrafficRule.Right,      90.0f },
+        { TrafficRule.Left,      -90.0f },
+        { TrafficRule.Down,      180.0f },
+        { TrafficRule.DownRight, 135.0f },
+        { TrafficRule.DownLeft, -135.0f },
+        { TrafficRule.Up,          0.0f },
+        { TrafficRule.UpRight,    45.0f },
+        { TrafficRule.UpLeft,    -45.0f }
+    };
+
+    private Vector2 worldForUnit(int ux, int uy) {
+        float wx = (float)(ux + m_Backward) * m_UnitSize;
+        float wz = (float)(uy + m_Near) * m_UnitSize;
+        return new Vector2(wx, wz);
+    }
+
+    private Vector3 vector3ForUnit(int ux, int uy) {
+        Vector2 xy = worldForUnit(ux, uy);
+        return new Vector3(xy.x, 0.0f, xy.y);
+    }
+
+    private Unit unitForWorld(float wx, float wz) {
+        float harf = m_UnitSize / 2.0f;
+        int x = (int)((wx + harf) / m_UnitSize) - m_Backward;
+        int y = (int)((wz + harf) / m_UnitSize) - m_Near;
+        return new Unit(x, y);
+    }
 
     public bool isReverseRoad() {
         TrafficRule rule = TrafficRule.Stop;
@@ -68,23 +105,21 @@ public class StageBuilder : MonoBehaviour {
     public TrafficRule GetTrafficRule(float x, float z) {
         bool beyond = false;
         TrafficRule rule = TrafficRule.Stop;
-        float unit_harf = (float)m_UnitSize / 2.0f;
-        int ux = (int)((x + unit_harf) / m_UnitSize) - m_Backward;
-        int uz = (int)((z + unit_harf) / m_UnitSize) - m_Near;
-        if (uz >= m_Far - m_Near) {
+        Unit unit = unitForWorld(x, z);
+        if (unit.y >= UnitHeight) {
             beyond = true;
-            uz = m_Far - m_Near - 1;
+            unit.y = UnitHeight - 1;
         }
-        if (uz < 0) {
+        if (unit.y < 0) {
             beyond = true;
-            uz = 0;
+            unit.y = 0;
         }
-        if (ux < 0) {
+        if (unit.x < 0) {
             return TrafficRule.Stop;
         }
-        if (m_trafficRules.ContainsKey(ux)) {
-            var rules = m_trafficRules[ux];
-            rule = uz < rules.Count ? rules[uz] : TrafficRule.Stop;
+        if (m_trafficRules.ContainsKey(unit.x)) {
+            var rules = m_trafficRules[unit.x];
+            rule = unit.y < rules.Count ? rules[unit.y] : TrafficRule.Stop;
         }
         if (beyond && rule == TrafficRule.Stop) { 
             rule = TrafficRule.Right;
@@ -92,95 +127,95 @@ public class StageBuilder : MonoBehaviour {
         return rule;
     }
 
-    private void SetTrafficRule(int ux, int uz, TrafficRule rule) {
-        SetTrafficArrow(ux, uz, rule);
-        ux -= m_Backward;
-        uz -= m_Near;
-        if (uz < 0 || ux < 0) {
+    public Range<Vector2>[] GetRoadArea(float x) {
+        float harf = m_UnitSize / 2.0f;
+        var result = new List<Range<Vector2>>();
+        Unit unit = unitForWorld(x, 0);
+        unit.y = 0;
+        if (m_trafficRules.ContainsKey(unit.x)) {
+            var rules = m_trafficRules[unit.x];
+            for (int uy = 0; uy <= UnitHeight; uy++) {
+                if (rules[unit.y] == TrafficRule.Stop) {
+                    unit.y = uy;
+                    continue;
+                }
+                bool last = uy == UnitHeight;
+                if (rules[uy] == TrafficRule.Stop || last) {
+                    var min = worldForUnit(unit.x, unit.y);
+                    var max = worldForUnit(unit.x + 1, uy);
+                    min.x -= harf;
+                    min.y -= harf;
+                    max.x -= harf;
+                    max.y -= harf;
+                    result.Add(new Range<Vector2>(min, max));
+                    unit.y = uy;
+                }
+            }
+            if (result.Count == 0) {
+                return null;
+            }
+        }
+        return result.ToArray();
+    }
+
+    private void SetTrafficRule(Unit unit, TrafficRule rule) {
+        SetTrafficArrow(unit, rule);
+        if (unit.x < 0 || unit.y < 0) {
             return;
         }
-        if (m_trafficRules.ContainsKey(ux)) {
-            var rules = m_trafficRules[ux];
-            if (uz < rules.Count) {
-                rules[uz] = rule;
+        if (m_trafficRules.ContainsKey(unit.x)) {
+            var rules = m_trafficRules[unit.x];
+            if (unit.y < rules.Count) {
+                rules[unit.y] = rule;
             } else {
-                rules.AddRange(new TrafficRule[uz - rules.Count + 1]);
-                rules[uz] = rule;
+                rules.AddRange(new TrafficRule[unit.y - rules.Count + 1]);
+                rules[unit.y] = rule;
             }
-            m_trafficRules[ux] = rules;
+            m_trafficRules[unit.x] = rules;
         } else {
             var rules = new List<TrafficRule>();
-            rules.AddRange(new TrafficRule[m_Far - m_Near]);
-            rules[uz] = rule;
-            m_trafficRules.Add(ux, rules);
+            rules.AddRange(new TrafficRule[UnitHeight + 1]);
+            rules[unit.y] = rule;
+            m_trafficRules.Add(unit.x, rules);
         }
     }
 
-    private void SetTrafficArrow(int ux, int uz, TrafficRule rule) {
+    private void SetTrafficArrow(Unit unit, TrafficRule rule) {
         if (m_Arrow == null) {
             return;
         }
-        float rot = 0.0f;
-        switch (rule) {
-        case TrafficRule.Right:
-            rot = 90.0f;
-            break;
-        case TrafficRule.Left:
-            rot = -90.0f;
-            break;
-        case TrafficRule.Down:
-            rot = 180.0f;
-            break;
-        case TrafficRule.DownRight:
-            rot = 135.0f;
-            break;
-        case TrafficRule.DownLeft:
-            rot = -135.0f;
-            break;
-        case TrafficRule.Up:
-            rot = 0.0f;
-            break;
-        case TrafficRule.UpRight:
-            rot = 45.0f;
-            break;
-        case TrafficRule.UpLeft:
-            rot = -45.0f;
-            break;
-        }
-        var pos = new Vector3(ux * m_UnitSize, 0.15f, uz * m_UnitSize);
-        var angle = new Vector3(90.0f, rot, 0.0f);
-
-        ux -= m_Backward;
-        uz -= m_Near;
-        if (uz < 0 || ux < 0) {
+        var angle = new Vector3(90.0f, rotationForRule[rule], 0.0f);
+        var pos = vector3ForUnit(unit.x, unit.y);
+        pos.y = 0.01f;
+        if (unit.x < 0 || unit.y < 0) {
             return;
         }
-        if (m_trafficArrows.ContainsKey(ux)) {
-            var arrows = m_trafficArrows[ux];
-            if (uz < arrows.Count) {
-                var obj = arrows[uz];
+        if (m_trafficArrows.ContainsKey(unit.x)) {
+            var arrows = m_trafficArrows[unit.x];
+            if (unit.y < arrows.Count) {
+                var obj = arrows[unit.y];
                 obj.transform.position = pos;
                 obj.transform.eulerAngles = angle;
-                obj.SetActiveRecursively(rule != TrafficRule.Stop);
-                arrows[uz] = obj;
+                obj.SetActive(rule != TrafficRule.Stop);
+                arrows[unit.y] = obj;
             }
-            m_trafficArrows[ux] = arrows;
+            m_trafficArrows[unit.x] = arrows;
         } else {
-            var num = m_Far - m_Near;
+            var num = UnitHeight + 1;
             var arrows = new List<GameObject>(num);
             for (var i = 0; i < num; i++) {
                 var obj = GameObject.Instantiate(m_Arrow);
                 obj.transform.SetParent(transform);
-                if (i == uz) {
+                if (i == unit.y) {
                     obj.transform.position = pos;
                     obj.transform.eulerAngles = angle;
-                    obj.SetActiveRecursively(rule != TrafficRule.Stop);
+                    obj.SetActive(rule != TrafficRule.Stop);
                 } else {
-                    obj.SetActiveRecursively(false);
+                    obj.SetActive(false);
                 }
                 arrows.Add(obj);
             }
-            m_trafficArrows.Add(ux, arrows);
+            m_trafficArrows.Add(unit.x, arrows);
         }
     }
 
@@ -198,10 +233,10 @@ public class StageBuilder : MonoBehaviour {
         }
     }
 
-    private void removePassedTrafficArrows(int key) {
-        if (m_trafficArrows.ContainsKey(key)) {
-            var arrows = m_trafficArrows[key];
-            m_trafficArrows.Remove(key);
+    private void removePassedTrafficArrows(int ux) {
+        if (m_trafficArrows.ContainsKey(ux)) {
+            var arrows = m_trafficArrows[ux];
+            m_trafficArrows.Remove(ux);
             foreach (var obj in arrows) {
                 GameObject.Destroy(obj);
             }
@@ -260,18 +295,33 @@ public class StageBuilder : MonoBehaviour {
 
     // Use this for initialization
 	void Start () {
-        m_min = m_max = m_next = m_Backward;
+        if (!m_inited) {
+            PrepareStage();
+        }
+	}
+
+    public void PrepareStage() {
+        m_inited = true;
         m_player = GameObject.FindGameObjectWithTag("Player");
         m_landBase = new GameObject();
         m_landBase.transform.SetParent(transform);
-	}
-	
+        var unit = unitForWorld(m_player.transform.position.x, 0.0f);
+        m_fstep = 0;
+        m_bstep = 0;
+        while (m_next < unit.x) {
+            buildNext();
+        }
+        m_fstep = 1;
+    }
+
 	// Update is called once per frame
 	void Update () {
-        var ux = (int)(m_player.transform.position.x / m_UnitSize);
+        var unit = unitForWorld(m_player.transform.position.x, 0.0f);
         var built = false;
-        while (m_next < ux + m_Forward) {
+        while (m_next < unit.x + m_Forward) {
             buildNext();
+            m_index++;
+            m_bstep = 1;
             built = true;
         }
         if (built) {
@@ -284,97 +334,89 @@ public class StageBuilder : MonoBehaviour {
         var landWidth = LandWidth(m_index);
         var roadWidth = RoadWidth(m_index);
         var ux = m_next;
-        var dz = landWidth + roadWidth; // minimum space
+        var minimum = landWidth + roadWidth;
         List<int> lands = new List<int>();
-        lands.Add(0);
+        lands.Add(CentralUY);
         if (m_prevLands != null) {
             if (m_reservedLands != null) {
                 foreach (var range in m_reservedLands) {
-                    AddUnique(lands, range.begin);
-                    AddUnique(lands, range.end + RoadWidth(m_index - 1));
+                    AddUnique(lands, range.Min);
+                    AddUnique(lands, range.Max + RoadWidth(m_index - m_bstep));
                 }
             }
-            foreach (var puz in m_prevLands) {
-                bool repeat = true;
-                if (RoadWidth(m_index - 1) != roadWidth) {
-                    repeat = false;
-                }
-                if (Random.Range(0.0f, 1.0f) > m_Straightness) {
-                    repeat = false;
-                }
-                if (repeat) {
-                    AddUnique(lands, puz);
+            if (RoadWidth(m_index - m_bstep) == roadWidth) {
+                foreach (var prevLand in m_prevLands) {
+                    if (Random.Range(0.0f, 1.0f) < m_Straightness) {
+                        AddUnique(lands, prevLand);
+                    }
                 }
             }
         }
         for (var i = lands.Count; i < m_MaxLands; i++) {
-            var tmp = Random.Range(m_Near + dz, m_Far - landWidth + 1);
+            var uy = Random.Range(minimum, UnitHeight - landWidth + 1);
             var safe = true;
             foreach (var yet in lands) {
-                if (tmp + dz > yet && tmp < yet + dz) {
+                if (uy + minimum > yet && uy < yet + minimum) {
                     safe = false;
                     break;
                 }
             }
             if (safe && m_reservedLands != null) {
                 foreach (var range in m_reservedLands) {
-                    if (tmp + dz > range.begin && tmp < range.end + roadWidth) {
+                    if (uy + minimum > range.Min && uy < range.Max + roadWidth) {
                         safe = false;
                         break;
                     }
                 }
             }
             if (safe) {
-                AddUnique(lands, tmp);
+                AddUnique(lands, uy);
             }
         }
         lands.Sort();
-        if (isReverseRoad(m_index)) {
-            m_reservedLands = createReverseLine(m_index, ux, lands);
-        } else {
-            m_reservedLands = createNormalLine(m_index, ux, lands);
-        }
+        m_reservedLands = createLandLine(ux, lands, isReverseRoad(m_index));
         m_prevLands = lands;
-        m_min = Mathf.Min(m_min, ux);
-        m_max = Mathf.Max(m_max, ux);
         m_next = ux + landWidth + roadWidth;
-        m_index++;
     }
 
-    private List<LandRange> createNormalLine(int index, int ux, List<int> lands) {
+    private List<LandRange> createLandLine(int ux, List<int> lands, bool isReverse) {
+        var Vert = isReverse ? TrafficRule.Up : TrafficRule.Down;
+        var VertRight = isReverse ? TrafficRule.UpRight : TrafficRule.DownRight;
+        var VertLeft = isReverse ? TrafficRule.UpLeft : TrafficRule.DownLeft;
+        var VertOpposite = isReverse ? TrafficRule.Down : TrafficRule.Up;
+        var roadWidth = RoadWidth(m_index);
+        var landWidth = LandWidth(m_index);
+        var landWidth2 = landWidth + roadWidth + LandWidth(m_index + m_fstep);
+        var leftwidth = RoadWidth(m_index - m_bstep);
+        bool isPreviousOpposite = isReverseRoad(m_index - m_bstep) != isReverse;
         var reserved = new List<LandRange>();
-        var uz = m_Near;
-        var roadWidth = RoadWidth(index);
-        var landWidth = LandWidth(index);
-        var landWidth2 = landWidth + roadWidth + LandWidth(index + 1);
-        var leftwidth = RoadWidth(index - 1);
-        bool isPreviousUp = isReverseRoad(index - 1);
+        var uy = 0;
         for (var i = 0; i < lands.Count; i++) {
-            var nz = lands[i];
-            if (uz == nz) {
+            var ny = lands[i];
+            if (uy == ny) {
                 continue;
             }
             var skip = false;
             if (m_reservedLands != null) {
                 foreach (var range in m_reservedLands) {
-                    if (uz == range.begin) {
-                        createTrafficRules(ux + landWidth, uz, roadWidth, nz - uz - roadWidth, TrafficRule.Down);
-                        createTrafficRules(ux + landWidth, nz - roadWidth, roadWidth, roadWidth, TrafficRule.DownRight);
+                    if (uy == range.Min) {
+                        createTrafficRules(ux + landWidth, uy, roadWidth, ny - uy - roadWidth, Vert);
+                        createTrafficRules(ux + landWidth, ny - roadWidth, roadWidth, roadWidth, VertRight);
                         skip = true;
                         break;
                     }
                 }
             }
             if (skip) {
-                uz = nz;
+                uy = ny;
                 continue;
             }
             bool isRight = Random.Range(0, 2) == 0 ? true : false;
-            var depth = nz - uz - roadWidth;
+            var depth = ny - uy - roadWidth;
             var width = landWidth;
-            if (uz > 0 && Random.Range(0.0f, 1.0f) < m_Blindness) {
+            if (uy != CentralUY && Random.Range(0.0f, 1.0f) < m_Blindness) {
                 width = landWidth2;
-                var range = new LandRange(uz, uz + depth);
+                var range = new LandRange(uy, uy + depth);
                 reserved.Add(range);
             }
             if (width < 2) {
@@ -383,84 +425,22 @@ public class StageBuilder : MonoBehaviour {
             if (depth < 2) {
                 depth = 2;
             }
-            createLand(ux, uz, width, depth);
-            createTrafficRules(ux, uz, width, depth, TrafficRule.Stop);
-            createTrafficRules(ux, nz - roadWidth, width, roadWidth, isRight ? TrafficRule.Right : TrafficRule.Left);
-            createTrafficRules(ux + width, nz - roadWidth, landWidth2 - width, roadWidth, isRight ? TrafficRule.DownRight : TrafficRule.DownLeft);
-            createTrafficRules(ux + width, uz, landWidth2 - width, depth, TrafficRule.Down);
-            createTrafficRules(ux - leftwidth, uz, leftwidth, depth, isPreviousUp ? TrafficRule.Up : TrafficRule.Down);
+            createLand(ux, uy, width, depth);
+            createTrafficRules(ux, uy, width, depth, TrafficRule.Stop);
+            createTrafficRules(ux, ny - roadWidth, width, roadWidth, isRight ? VertRight : VertLeft);
+            createTrafficRules(ux + width, ny - roadWidth, landWidth2 - width, roadWidth, isRight ? VertRight : VertLeft);
+            createTrafficRules(ux + width, uy, landWidth2 - width, depth, Vert);
+            createTrafficRules(ux - leftwidth, uy, leftwidth, depth, isPreviousOpposite ? VertOpposite : Vert);
             if (!isRight) {
-                createTrafficRules(ux - 2, nz - roadWidth, 2, roadWidth, isPreviousUp ? TrafficRule.Up : TrafficRule.Down);
+                createTrafficRules(ux - 2, ny - roadWidth, 2, roadWidth, isPreviousOpposite ? VertOpposite : Vert);
             }
-            uz = nz;
+            uy = ny;
         }
-        if (uz + 2 <= m_Far) {
-            createLand(ux, uz, landWidth, m_Far - uz);
-            createTrafficRules(ux, uz, landWidth, m_Far - uz, TrafficRule.Stop);
-            createTrafficRules(ux + landWidth, uz, landWidth2 - landWidth, m_Far - uz, TrafficRule.Down);
-            createTrafficRules(ux - leftwidth, uz, leftwidth, m_Far - uz, isPreviousUp ? TrafficRule.Up : TrafficRule.Down);
-        }
-        return reserved;
-    }
-
-    private List<LandRange> createReverseLine(int index, int ux, List<int> lands) {
-        var reserved = new List<LandRange>();
-        var uz = m_Near;
-        var roadWidth = RoadWidth(index);
-        var landWidth = LandWidth(index);
-        var landWidth2 = landWidth + roadWidth + LandWidth(index + 1);
-        var leftwidth = RoadWidth(index - 1);
-        bool isPreviousUp = isReverseRoad(index - 1);
-        for (var i = 0; i < lands.Count; i++) {
-            var nz = lands[i];
-            if (uz == nz) {
-                continue;
-            }
-            var skip = false;
-            if (m_reservedLands != null) {
-                foreach (var range in m_reservedLands) {
-                    if (uz == range.begin) {
-                        createTrafficRules(ux + landWidth, uz, roadWidth, nz - uz - roadWidth, TrafficRule.Up);
-                        createTrafficRules(ux + landWidth, nz - roadWidth, roadWidth, roadWidth, TrafficRule.UpLeft);
-                        skip = true;
-                        break;
-                    }
-                }
-            }
-            if (skip) {
-                uz = nz;
-                continue;
-            }
-            bool isRight = Random.Range(0, 2) == 0 ? true : false;
-            var depth = nz - uz - roadWidth;
-            var width = landWidth;
-            if (uz > 0 && Random.Range(0.0f, 1.0f) < m_Blindness) {
-                width = landWidth2;
-                var range = new LandRange(uz, uz + depth);
-                reserved.Add(range);
-            }
-            if (width < 2) {
-                width = 2;
-            }
-            if (depth < 2) {
-                depth = 2;
-            }
-            createLand(ux, uz, width, depth);
-            createTrafficRules(ux, uz, width, depth, TrafficRule.Stop);
-            createTrafficRules(ux, nz - roadWidth, width, roadWidth, isRight ? TrafficRule.Right : TrafficRule.Left);
-            createTrafficRules(ux + width, nz - roadWidth, landWidth2 - width, roadWidth, isRight ? TrafficRule.UpRight : TrafficRule.UpLeft);
-            createTrafficRules(ux + width, uz, landWidth2 - width, depth, TrafficRule.Up);
-            createTrafficRules(ux - leftwidth, uz, leftwidth, depth, isPreviousUp ? TrafficRule.Up : TrafficRule.Down);
-            if (!isRight) {
-                createTrafficRules(ux - 2, nz - roadWidth, 2, roadWidth, isPreviousUp ? TrafficRule.Up : TrafficRule.Down);
-            }
-            uz = nz;
-        }
-        if (uz + 2 <= m_Far) {
-            createLand(ux, uz, landWidth, m_Far - uz);
-            createTrafficRules(ux, uz, landWidth, m_Far - uz, TrafficRule.Stop);
-            createTrafficRules(ux + landWidth, uz, landWidth2 - landWidth, m_Far - uz, TrafficRule.Up);
-            createTrafficRules(ux - leftwidth, uz, leftwidth, m_Far - uz, isPreviousUp ? TrafficRule.Up : TrafficRule.Down);
+        if (uy + 2 <= UnitHeight) {
+            createLand(ux, uy, landWidth, UnitHeight - uy);
+            createTrafficRules(ux, uy, landWidth, UnitHeight - uy, TrafficRule.Stop);
+            createTrafficRules(ux + landWidth, uy, landWidth2 - landWidth, UnitHeight - uy, Vert);
+            createTrafficRules(ux - leftwidth, uy, leftwidth, UnitHeight - uy, isPreviousOpposite ? VertOpposite : Vert);
         }
         return reserved;
     }
@@ -475,57 +455,57 @@ public class StageBuilder : MonoBehaviour {
         }
     }
 
-    private void createTrafficRules(int ux, int uz, int width, int depth, TrafficRule rule) {
+    private void createTrafficRules(int ux, int uy, int width, int depth, TrafficRule rule) {
         for (var x = ux; x < ux + width; x++) {
-            for (var z = uz; z < uz + depth; z++) {
-                SetTrafficRule(x, z, rule);
+            for (var y = uy; y < uy + depth; y++) {
+                SetTrafficRule(new Unit(x, y), rule);
             }
         }
     }
 
-    private void createLand(int ux, int uz, int width, int depth) {
+    private void createLand(int ux, int uy, int width, int depth) {
         GameObject obj = null;
         obj = GameObject.Instantiate(m_SidewalkCorner);
         obj.transform.SetParent(m_landBase.transform);
-        obj.transform.position = new Vector3(ux * m_UnitSize, 0.0f, uz * m_UnitSize);
+        obj.transform.position = vector3ForUnit(ux, uy);
         obj.transform.Rotate(new Vector3(0.0f, 0.0f, 90.0f));
         obj = GameObject.Instantiate(m_SidewalkCorner);
         obj.transform.SetParent(m_landBase.transform);
-        obj.transform.position = new Vector3((ux + width - 1) * m_UnitSize, 0.0f, uz * m_UnitSize);
+        obj.transform.position = vector3ForUnit(ux + width - 1, uy);
         obj.transform.Rotate(new Vector3(0.0f, 0.0f, 0.0f));
         obj = GameObject.Instantiate(m_SidewalkCorner);
         obj.transform.SetParent(m_landBase.transform);
-        obj.transform.position = new Vector3((ux + width - 1) * m_UnitSize, 0.0f, (uz + depth - 1) * m_UnitSize);
+        obj.transform.position = vector3ForUnit(ux + width - 1, uy + depth - 1);
         obj.transform.Rotate(new Vector3(0.0f, 0.0f, 270.0f));
         obj = GameObject.Instantiate(m_SidewalkCorner);
         obj.transform.SetParent(m_landBase.transform);
-        obj.transform.position = new Vector3(ux * m_UnitSize, 0.0f, (uz + depth - 1) * m_UnitSize);
+        obj.transform.position = vector3ForUnit(ux, uy + depth - 1);
         obj.transform.Rotate(new Vector3(0.0f, 0.0f, 180.0f));
         for (var x = ux + 1; x < ux + width - 1; x++) {
             obj = GameObject.Instantiate(m_Sidewalk);
             obj.transform.SetParent(m_landBase.transform);
-            obj.transform.position = new Vector3(x * m_UnitSize, 0.0f, uz * m_UnitSize);
+            obj.transform.position = vector3ForUnit(x, uy);
             obj.transform.Rotate(new Vector3(0.0f, 0.0f, 90.0f));
             obj = GameObject.Instantiate(m_Sidewalk);
             obj.transform.SetParent(m_landBase.transform);
-            obj.transform.position = new Vector3(x * m_UnitSize, 0.0f, (uz + depth - 1) * m_UnitSize);
+            obj.transform.position = vector3ForUnit(x, uy + depth - 1);
             obj.transform.Rotate(new Vector3(0.0f, 0.0f, 270.0f));
         }
-        for (var z = uz + 1; z < uz + depth - 1; z++) {
+        for (var y = uy + 1; y < uy + depth - 1; y++) {
             obj = GameObject.Instantiate(m_Sidewalk);
             obj.transform.SetParent(m_landBase.transform);
-            obj.transform.position = new Vector3(ux * m_UnitSize, 0.0f, z * m_UnitSize);
+            obj.transform.position = vector3ForUnit(ux, y);
             obj.transform.Rotate(new Vector3(0.0f, 0.0f, 180.0f));
             obj = GameObject.Instantiate(m_Sidewalk);
             obj.transform.SetParent(m_landBase.transform);
-            obj.transform.position = new Vector3((ux + width - 1) * m_UnitSize, 0.0f, z * m_UnitSize);
+            obj.transform.position = vector3ForUnit(ux + width - 1, y);
             obj.transform.Rotate(new Vector3(0.0f, 0.0f, 0.0f));
         }
         for (var x = ux + 1; x < ux + width - 1; x++) {
-            for (var z = uz + 1; z < uz + depth - 1; z++) {
+            for (var y = uy + 1; y < uy + depth - 1; y++) {
                 obj = GameObject.Instantiate(m_Land);
                 obj.transform.SetParent(m_landBase.transform);
-                obj.transform.position = new Vector3(x * m_UnitSize, 0.0f, z * m_UnitSize);
+                obj.transform.position = vector3ForUnit(x, y);
                 obj.transform.Rotate(new Vector3(0.0f, 0.0f, 0.0f));
             }
         }
