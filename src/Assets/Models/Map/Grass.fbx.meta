@@ -6,10 +6,19 @@ ModelImporter:
   serializedVersion: 19
   fileIDToRecycleName:
     100000: //RootNode
+    100002: Circle
+    100004: Grass
     400000: //RootNode
+    400002: Circle
+    400004: Grass
     2300000: //RootNode
+    2300002: Circle
+    2300004: Grass
     3300000: //RootNode
+    3300002: Circle
+    3300004: Grass
     4300000: Grass
+    4300002: Circle
   materials:
     importMaterials: 1
     materialName: 0
