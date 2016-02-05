@@ -28,7 +28,10 @@ public class StageBuilder : MonoBehaviour {
     [SerializeField] private GameObject m_Land = null;
     [SerializeField] private GameObject m_Sidewalk = null;
     [SerializeField] private GameObject m_SidewalkCorner = null;
+    [SerializeField] private GameObject m_Grass = null;
+    [SerializeField] private GameObject m_Wood = null;
     [SerializeField] private GameObject m_Arrow = null;
+    [SerializeField] private bool m_isDebugMode = false;
     [SerializeField] private float m_UnitSize = 2.0f;
     [SerializeField] private int m_Backward = -20;
     [SerializeField] private int m_Forward = 20;
@@ -37,10 +40,10 @@ public class StageBuilder : MonoBehaviour {
     [SerializeField] private int m_MaxLands = 5;
     [SerializeField] private float m_Straightness = 0.5f;
     [SerializeField] private float m_Blindness = 0.5f;
+    [SerializeField] private bool m_isLoop = true;
     [SerializeField] private int[] m_LandWidths = { 3, 3, 3 };
     [SerializeField] private int[] m_RoadWidths = { 4, 4, 4 };
     [SerializeField] private bool[] m_ReverseRoads = { false, false, true };
-    [SerializeField] private bool m_isLoop = true;
 
     public float UnitSize { get { return m_UnitSize; } }
     public float Constructed { get { return worldForUnit(m_next, 0).x; } }
@@ -196,7 +199,7 @@ public class StageBuilder : MonoBehaviour {
                 var obj = arrows[unit.y];
                 obj.transform.position = pos;
                 obj.transform.eulerAngles = angle;
-                obj.SetActive(rule != TrafficRule.Stop);
+                obj.SetActive(rule != TrafficRule.Stop && m_isDebugMode);
                 arrows[unit.y] = obj;
             }
             m_trafficArrows[unit.x] = arrows;
@@ -209,7 +212,7 @@ public class StageBuilder : MonoBehaviour {
                 if (i == unit.y) {
                     obj.transform.position = pos;
                     obj.transform.eulerAngles = angle;
-                    obj.SetActive(rule != TrafficRule.Stop);
+                    obj.SetActive(rule != TrafficRule.Stop && m_isDebugMode);
                 } else {
                     obj.SetActive(false);
                 }
@@ -507,6 +510,37 @@ public class StageBuilder : MonoBehaviour {
                 obj.transform.SetParent(m_landBase.transform);
                 obj.transform.position = vector3ForUnit(x, y);
                 obj.transform.Rotate(new Vector3(0.0f, 0.0f, 0.0f));
+            }
+        }
+        if (width < 4 || depth < 4) {
+            var offset = Vector3.zero;
+            var numx = width <= 3 ? 1 : width - 2;
+            var numy = depth <= 3 ? 1 : depth - 2;
+            int x = ux + (width - numx) / 2;
+            int y = uy + (depth - numy) / 2;
+            offset.x = -m_UnitSize * ((width - numx) % 2 == 1 ? 0.5f : 0.0f);
+            offset.y = 0.1f;
+            offset.z = -m_UnitSize * ((depth - numy) % 2 == 1 ? 0.5f : 0.0f);
+            createGrassAndTree(ux + 1, uy + 1, numx, numy, offset);
+        }
+    }
+
+    private void createGrassAndTree(int ux, int uy, int width, int depth, Vector3 offset) {
+        for (var x = ux; x < ux + width; x++) {
+            for (var y = uy; y < uy + depth; y++) {
+                if (Random.Range(0, 4) == 0) {
+                    continue;
+                }
+                var obj = GameObject.Instantiate(m_Grass);
+                obj.transform.SetParent(m_landBase.transform);
+                obj.transform.position = vector3ForUnit(x, y) + offset;
+                obj.transform.Rotate(new Vector3(0.0f, 0.0f, Random.Range(0.0f, 360.0f)));
+                if (Random.Range(0, 4) == 0) {
+                    obj = GameObject.Instantiate(m_Wood);
+                    obj.transform.SetParent(m_landBase.transform);
+                    obj.transform.position = vector3ForUnit(x, y) + offset;
+                    obj.transform.Rotate(new Vector3(0.0f, 0.0f, Random.Range(0.0f, 360.0f)));
+                }
             }
         }
     }

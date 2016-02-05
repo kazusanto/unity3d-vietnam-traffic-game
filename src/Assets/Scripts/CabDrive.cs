@@ -68,7 +68,7 @@ public class CabDrive : MonoBehaviour {
             if (targetangle < 5.0f && distance < 15.0f) {
                 m_near = true;
                 var targetcross = mydir2d.x * targetdir2d.y - mydir2d.y * targetdir2d.x;
-                m_steering_to += (targetcross > 0.0f ? 1.0f : -1.0f) * Random.Range(0.05f, 0.2f);
+                m_steering_to += (targetcross > 0.0f ? 1.0f : -1.0f) * Random.Range(0.05f, 0.15f);
                 m_accel = 0.5f;
             } else if (!roaddir2d.Equals(Vector2.zero)) {
                 m_near = false;
@@ -79,11 +79,11 @@ public class CabDrive : MonoBehaviour {
                     if (roadangle < 10.0f) {
                         m_count = Random.Range(1, 2);
                     } else if (roadangle < 20.0f) {
-                        m_count = Random.Range(2, 4);
+                        m_count = Random.Range(2, 3);
                     } else if (roadangle < 30.0f) {
-                        m_count = Random.Range(4, 6);
+                        m_count = Random.Range(3, 4);
                     } else {
-                        m_count = Random.Range(6, 8);
+                        m_count = Random.Range(4, 5);
                     }
                 }
             } else {

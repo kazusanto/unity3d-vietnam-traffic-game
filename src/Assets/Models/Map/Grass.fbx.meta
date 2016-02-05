@@ -1,6 +1,6 @@
 fileFormatVersion: 2
-guid: c7f5b8549012049e79954446212258a5
-timeCreated: 1454687239
+guid: abff9cf0ac49a4b8cabb334d26a3f8e1
+timeCreated: 1454666905
 licenseType: Free
 ModelImporter:
   serializedVersion: 19
@@ -9,7 +9,7 @@ ModelImporter:
     400000: //RootNode
     2300000: //RootNode
     3300000: //RootNode
-    4300000: Land
+    4300000: Grass
   materials:
     importMaterials: 1
     materialName: 0

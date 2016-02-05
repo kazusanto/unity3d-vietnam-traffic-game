@@ -54,7 +54,7 @@ public class PlayerController : MonoBehaviour {
             m_foots[i] = searchTransform(transform, m_Foots[i]);
             m_footYs[i] = m_foots[i].position.y;
         }
-        m_offset = new Vector3(m_stage.UnitSize / 2.0f, 0.0f, m_stage.UnitSize / 2.0f);
+        m_offset = Vector3.zero;
         transform.position = m_offset;
 	}
 	

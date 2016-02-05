@@ -1,6 +1,6 @@
 fileFormatVersion: 2
-guid: c7f5b8549012049e79954446212258a5
-timeCreated: 1454687239
+guid: 2461822fbac1747fba993c6ce14f617c
+timeCreated: 1454691707
 licenseType: Free
 ModelImporter:
   serializedVersion: 19
@@ -9,7 +9,7 @@ ModelImporter:
     400000: //RootNode
     2300000: //RootNode
     3300000: //RootNode
-    4300000: Land
+    4300000: Tree
   materials:
     importMaterials: 1
     materialName: 0
