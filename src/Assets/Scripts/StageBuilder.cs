@@ -30,6 +30,8 @@ public class StageBuilder : MonoBehaviour {
     [SerializeField] private GameObject m_SidewalkCorner = null;
     [SerializeField] private GameObject m_Grass = null;
     [SerializeField] private GameObject m_Wood = null;
+    [SerializeField] private GameObject[] m_Items1x1 = null;
+
     [SerializeField] private GameObject m_Arrow = null;
     [SerializeField] private bool m_isDebugMode = false;
     [SerializeField] private float m_UnitSize = 2.0f;
@@ -516,8 +518,6 @@ public class StageBuilder : MonoBehaviour {
             var offset = Vector3.zero;
             var numx = width <= 3 ? 1 : width - 2;
             var numy = depth <= 3 ? 1 : depth - 2;
-            int x = ux + (width - numx) / 2;
-            int y = uy + (depth - numy) / 2;
             offset.x = -m_UnitSize * ((width - numx) % 2 == 1 ? 0.5f : 0.0f);
             offset.y = 0.1f;
             offset.z = -m_UnitSize * ((depth - numy) % 2 == 1 ? 0.5f : 0.0f);
@@ -526,22 +526,33 @@ public class StageBuilder : MonoBehaviour {
     }
 
     private void createGrassAndTree(int ux, int uy, int width, int depth, Vector3 offset) {
+        var dx = 1.5f + offset.x;
         for (var x = ux; x < ux + width; x++) {
             for (var y = uy; y < uy + depth; y++) {
-                if (Random.Range(0, 4) == 0) {
-                    continue;
-                }
-                var obj = GameObject.Instantiate(m_Grass);
-                obj.transform.SetParent(m_landBase.transform);
-                obj.transform.position = vector3ForUnit(x, y) + offset;
-                obj.transform.Rotate(new Vector3(0.0f, 0.0f, Random.Range(0.0f, 360.0f)));
-                if (Random.Range(0, 4) == 0) {
-                    obj = GameObject.Instantiate(m_Wood);
+                bool done = false;
+                if (Random.Range(0, 2) == 0) {
+                    var obj = GameObject.Instantiate(m_Grass);
                     obj.transform.SetParent(m_landBase.transform);
                     obj.transform.position = vector3ForUnit(x, y) + offset;
-                    obj.transform.Rotate(new Vector3(0.0f, 0.0f, Random.Range(0.0f, 360.0f)));
+                    if (Random.Range(0, 2) == 0) {
+                        obj = GameObject.Instantiate(m_Wood);
+                        obj.transform.SetParent(m_landBase.transform);
+                        obj.transform.position = vector3ForUnit(x, y) + offset;
+                        done = true;
+                    }
+                }
+                if (!done && m_Items1x1.Length > 0) {
+                    var idx = Random.Range(0, m_Items1x1.Length * 2);
+                    if (idx < m_Items1x1.Length) {
+                        var itemoffset = offset;
+                        itemoffset.x += Random.Range(-dx, dx);
+                        var obj = GameObject.Instantiate(m_Items1x1[idx]);
+                        obj.transform.SetParent(m_landBase.transform);
+                        obj.transform.position = vector3ForUnit(x, y) + itemoffset;
+                        done = true;
+                    }
                 }
             }
         }
     }
-}
+ }
