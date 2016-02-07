@@ -394,6 +394,7 @@ public class StageBuilder : MonoBehaviour {
         var landWidth2 = landWidth + roadWidth + LandWidth(m_index + m_fstep);
         var leftwidth = RoadWidth(m_index - m_bstep);
         bool isPreviousOpposite = isReverseRoad(m_index - m_bstep) != isReverse;
+        bool isNextOpposite = isReverseRoad(m_index + m_fstep) != isReverse;
         var reserved = new List<LandRange>();
         var uy = 0;
         for (var i = 0; i < lands.Count; i++) {
@@ -419,7 +420,7 @@ public class StageBuilder : MonoBehaviour {
             bool isRight = Random.Range(0, 2) == 0 ? true : false;
             var depth = ny - uy - roadWidth;
             var width = landWidth;
-            if (uy != CentralUY && Random.Range(0.0f, 1.0f) < m_Blindness) {
+            if (uy != CentralUY && !isNextOpposite && Random.Range(0.0f, 1.0f) < m_Blindness) {
                 width = landWidth2;
                 var range = new LandRange(uy, uy + depth);
                 reserved.Add(range);
@@ -514,34 +515,40 @@ public class StageBuilder : MonoBehaviour {
                 obj.transform.Rotate(new Vector3(0.0f, 0.0f, 0.0f));
             }
         }
-        if (width < 4 || depth < 4) {
+        if (width >= 2 && depth >= 2) {
             var offset = Vector3.zero;
             var numx = width <= 3 ? 1 : width - 2;
             var numy = depth <= 3 ? 1 : depth - 2;
             offset.x = -m_UnitSize * ((width - numx) % 2 == 1 ? 0.5f : 0.0f);
             offset.y = 0.1f;
             offset.z = -m_UnitSize * ((depth - numy) % 2 == 1 ? 0.5f : 0.0f);
-            createGrassAndTree(ux + 1, uy + 1, numx, numy, offset);
+            createGarden(ux + 1, uy + 1, numx, numy, offset);
         }
     }
 
-    private void createGrassAndTree(int ux, int uy, int width, int depth, Vector3 offset) {
+    private void createGarden(int ux, int uy, int width, int depth, Vector3 offset) {
         var dx = 1.5f + offset.x;
         for (var x = ux; x < ux + width; x++) {
             for (var y = uy; y < uy + depth; y++) {
-                bool done = false;
+                bool isSidewalk = (x == ux || y == uy || x == width - 1 || y == depth - 1);
+                bool grass = false;
                 if (Random.Range(0, 2) == 0) {
                     var obj = GameObject.Instantiate(m_Grass);
                     obj.transform.SetParent(m_landBase.transform);
                     obj.transform.position = vector3ForUnit(x, y) + offset;
-                    if (Random.Range(0, 2) == 0) {
-                        obj = GameObject.Instantiate(m_Wood);
-                        obj.transform.SetParent(m_landBase.transform);
-                        obj.transform.position = vector3ForUnit(x, y) + offset;
-                        done = true;
-                    }
+                    grass = true;
                 }
-                if (!done && m_Items1x1.Length > 0) {
+                bool done = false;
+                if (y == CentralUY + 1 && depth == 1) {
+                    done = true;
+                }
+                if (!done && grass && Random.Range(0, 2) == 0) {
+                    var obj = GameObject.Instantiate(m_Wood);
+                    obj.transform.SetParent(m_landBase.transform);
+                    obj.transform.position = vector3ForUnit(x, y) + offset;
+                    done = true;
+                }
+                if (!done && isSidewalk && m_Items1x1.Length > 0) {
                     var idx = Random.Range(0, m_Items1x1.Length * 2);
                     if (idx < m_Items1x1.Length) {
                         var itemoffset = offset;

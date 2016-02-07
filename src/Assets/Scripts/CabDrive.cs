@@ -189,7 +189,7 @@ public class CabDrive : MonoBehaviour {
 
     private StageBuilder.TrafficRule chooseRoadRule(float x, float z, Vector2 vec, float speed)
     {
-        Vector2 forward = vec.normalized * 3.0f * speed;
+        Vector2 forward = vec.normalized * 2.0f * speed;
         x += forward.x;
         z += forward.y;
         StageBuilder.TrafficRule rule = m_stage.GetTrafficRule(x, z);
