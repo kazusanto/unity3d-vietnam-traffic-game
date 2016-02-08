@@ -55,8 +55,8 @@ public class CameraController : MonoBehaviour {
         m_TransitBegin = 0.0f;
 	}
 	
-	// Update is called once per frame
-	void Update () {
+	// LateUpdate is called once per frame after other Updates
+	void LateUpdate () {
         var pos = m_currentPosition;
         var angle = m_currentAngle;
         if (m_status_to == Status.Undefine) {

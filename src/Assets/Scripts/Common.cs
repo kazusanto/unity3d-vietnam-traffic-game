@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Common
 {
@@ -14,6 +16,14 @@ namespace Common
 
         public void Init(T value) {
             Min = Max = value;
+        }
+    }
+
+    static class Extensions {
+        public static void AddUnique<T>(this List<T> list, T value) {
+            if (list.IndexOf(value) == -1) {
+                list.Add(value);
+            }
         }
     }
 }
