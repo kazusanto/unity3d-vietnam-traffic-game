@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using Game;
 
 public class CabDrive : MonoBehaviour {
 
@@ -54,7 +55,7 @@ public class CabDrive : MonoBehaviour {
         }
         m_hit = false;
         if (m_count <= 0) {
-            m_count = Random.Range(5, 10);
+            m_count = Random.Range(4, 8);
             m_steering_to = 0.0f;
             m_accel = 1.0f;
             m_brake = 0.0f;
@@ -68,14 +69,14 @@ public class CabDrive : MonoBehaviour {
             if (targetangle < 5.0f && distance < 15.0f) {
                 m_near = true;
                 var targetcross = mydir2d.x * targetdir2d.y - mydir2d.y * targetdir2d.x;
-                m_steering_to += (targetcross > 0.0f ? 1.0f : -1.0f) * Random.Range(0.05f, 0.15f);
+                m_steering_to += (targetcross > 0.0f ? 1.0f : -1.0f) * Random.Range(0.1f, 0.2f);
                 m_count = Random.Range(1, 3);
                 m_accel = 0.5f;
             } else if (!roaddir2d.Equals(Vector2.zero)) {
                 m_near = false;
-                if (roadangle > 5.0f) {
+                if (roadangle > 3.0f) {
                     var roadcross = mydir2d.x * roaddir2d.y - mydir2d.y * roaddir2d.x;
-                    m_steering_to += (roadcross > 0.0f ? -1.0f : 1.0f) * Random.Range(0.25f, 0.5f);
+                    m_steering_to += (roadcross > 0.0f ? -1.0f : 1.0f) * Random.Range(0.3f, 0.6f);
                     m_accel = 0.5f;
                     m_count = Random.Range(1, 3);
                 }
@@ -140,19 +141,19 @@ public class CabDrive : MonoBehaviour {
 
     private Vector2 getRoadDirection(float x, float z, Vector2 vec, float speed)
     {
-        StageBuilder.TrafficRule choose = chooseRoadRule(x, z, vec, speed);
+        TrafficRule choose = chooseRoadRule(x, z, vec, speed);
         Vector2 dir = Vector2.zero;
         switch (choose) {
-        case StageBuilder.TrafficRule.Down:
+        case TrafficRule.Down:
             dir = new Vector2(0.0f, -1.0f);
             break;
-        case StageBuilder.TrafficRule.Up:
+        case TrafficRule.Up:
             dir = new Vector2(0.0f, 1.0f);
             break;
-        case StageBuilder.TrafficRule.Right:
-            dir = new Vector2(1.0f, 1.0f);
+        case TrafficRule.Right:
+            dir = new Vector2(1.0f, 0.0f);
             break;
-        case StageBuilder.TrafficRule.Left:
+        case TrafficRule.Left:
             dir = new Vector2(-1.0f, 0.0f);
             break;
         }
@@ -161,44 +162,44 @@ public class CabDrive : MonoBehaviour {
 
     private float getRoadAngle(float x, float z, Vector2 vec, float speed)
     {
-        StageBuilder.TrafficRule choose = chooseRoadRule(x, z, vec, speed);
+        TrafficRule choose = chooseRoadRule(x, z, vec, speed);
         float angle = 0.0f;
         switch (choose) {
-        case StageBuilder.TrafficRule.Down:
+        case TrafficRule.Down:
             angle = 180.0f;
             break;
-        case StageBuilder.TrafficRule.Up:
+        case TrafficRule.Up:
             angle = 0.0f;
             break;
-        case StageBuilder.TrafficRule.Right:
+        case TrafficRule.Right:
             angle = 90.0f;
             break;
-        case StageBuilder.TrafficRule.Left:
+        case TrafficRule.Left:
             angle = -90.0f;
             break;
         }
         return angle;
     }
 
-    private StageBuilder.TrafficRule chooseRoadRule(float x, float z, Vector2 vec, float speed)
+    private TrafficRule chooseRoadRule(float x, float z, Vector2 vec, float speed)
     {
         Vector2 forward = vec.normalized * 2.0f * speed;
         x += forward.x;
         z += forward.y;
-        StageBuilder.TrafficRule rule = m_stage.GetTrafficRule(x, z);
-        StageBuilder.TrafficRule choose = rule;
+        TrafficRule rule = m_stage.GetTrafficRule(x, z);
+        TrafficRule choose = rule;
         switch (rule) {
-        case StageBuilder.TrafficRule.DownLeft:
-            choose = m_vertman ? StageBuilder.TrafficRule.Down : StageBuilder.TrafficRule.Left;
+        case TrafficRule.DownLeft:
+            choose = m_vertman ? TrafficRule.Down : TrafficRule.Left;
             break;
-        case StageBuilder.TrafficRule.DownRight:
-            choose = m_vertman ? StageBuilder.TrafficRule.Down : StageBuilder.TrafficRule.Right;
+        case TrafficRule.DownRight:
+            choose = m_vertman ? TrafficRule.Down : TrafficRule.Right;
             break;
-        case StageBuilder.TrafficRule.UpLeft:
-            choose = m_vertman ? StageBuilder.TrafficRule.Up : StageBuilder.TrafficRule.Left;
+        case TrafficRule.UpLeft:
+            choose = m_vertman ? TrafficRule.Up : TrafficRule.Left;
             break;
-        case StageBuilder.TrafficRule.UpRight:
-            choose = m_vertman ? StageBuilder.TrafficRule.Up : StageBuilder.TrafficRule.Right;
+        case TrafficRule.UpRight:
+            choose = m_vertman ? TrafficRule.Up : TrafficRule.Right;
             break;
         }
         return choose;

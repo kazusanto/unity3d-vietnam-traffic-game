@@ -1,10 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using StageUnit;
-using Common;
+using Game;
 
-public class StageBlock : MonoBehaviour
+public class UnitBlock : MonoBehaviour
 {
     public int Width { get { return m_width; } }
     public int Length { get { return m_length; } }

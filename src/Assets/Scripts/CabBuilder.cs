@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using Common;
+using Game;
 
 public class CabBuilder : MonoBehaviour {
 
@@ -54,12 +54,12 @@ public class CabBuilder : MonoBehaviour {
 
     private void updatePoints() {
         var forward = m_player.transform.position.x + m_Forward;
-        while (m_next < m_stage.Constructed && m_next < forward) {
+        while (m_next < m_stage.ForwardEnd && m_next < forward) {
             var areas = m_stage.GetRoadArea(m_next);
             if (areas != null) {
                 m_points[m_next] = areas;
             }
-            m_next += m_stage.UnitSize;
+            m_next += UnitConst.size;
         }
         var list = new List<float>();
         foreach (var x in m_points.Keys) {
@@ -106,7 +106,7 @@ public class CabBuilder : MonoBehaviour {
         if (illegal) {
             var z = m_player.transform.position.z + m_Far;
             var rule = m_stage.GetTrafficRule(point.x, z);
-            if ((rule & StageBuilder.TrafficRule.Up) == StageBuilder.TrafficRule.Up) {
+            if ((rule & TrafficRule.Up) == TrafficRule.Up) {
                 z = m_player.transform.position.z + m_Near;
             }
             point.z = z;

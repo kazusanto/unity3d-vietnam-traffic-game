@@ -57,9 +57,10 @@
      <Compile Include="Assets\Scripts\RandomMaterial.cs" />
      <Compile Include="Assets\Scripts\RandomRotation.cs" />
      <Compile Include="Assets\Scripts\ScoreController.cs" />
-     <Compile Include="Assets\Scripts\StageBlock.cs" />
      <Compile Include="Assets\Scripts\StageBuilder.cs" />
+     <Compile Include="Assets\Scripts\TrafficRule.cs" />
      <Compile Include="Assets\Scripts\Unit.cs" />
+     <Compile Include="Assets\Scripts\UnitBlock.cs" />
      <None Include="Assets\Standard Assets\Effects\ToonShading\Shaders\ToonBasic.shader" />
      <None Include="Assets\Standard Assets\Vehicles\Car\Shaders\DiffuseReflectiveShader.shader" />
      <None Include="Assets\Standard Assets\Vehicles\Aircraft\AircraftGuidelines.txt" />

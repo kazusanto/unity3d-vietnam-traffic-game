@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityStandardAssets.Characters.ThirdPerson;
+using Game;
 
 public class PlayerController : MonoBehaviour {
 
@@ -31,7 +32,7 @@ public class PlayerController : MonoBehaviour {
         return m_looking;
     }
 
-    public StageBuilder.TrafficRule GetTrafficRule() {
+    public TrafficRule GetTrafficRule() {
         return m_stage.GetTrafficRule(transform.position.x, transform.position.z);
     }
 

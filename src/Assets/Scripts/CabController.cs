@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using Game;
 
 public class CabController : MonoBehaviour
 {

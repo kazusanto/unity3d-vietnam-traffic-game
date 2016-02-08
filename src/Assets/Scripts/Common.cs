@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Common
+namespace Game
 {
     public class Range<T>
     {
@@ -19,7 +19,7 @@ namespace Common
         }
     }
 
-    static class Extensions {
+    static class CommonExtensions {
         public static void AddUnique<T>(this List<T> list, T value) {
             if (list.IndexOf(value) == -1) {
                 list.Add(value);

@@ -1,10 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using Common;
-using StageUnit;
+using Game;
 
-public class LandBlock : StageBlock
+public class LandBlock : UnitBlock
 {
     [SerializeField] private GameObject m_Sidewalk = null;
     [SerializeField] private GameObject m_SidewalkCorner = null;
@@ -67,8 +66,8 @@ public class LandBlock : StageBlock
                     grass = true;
                 }
                 bool done = false;
-                if (Mathf.Abs(parent.transform.position.z) < UnitConst.size) {
-                    // don't put the items on the line for player walking.
+                if (Mathf.Abs(parent.transform.position.z + y * UnitConst.size) < UnitConst.size) {
+                    // don't put any items on the line where player will walk.
                     done = true;
                 }
                 if (!done && grass && m_Trees.Length > 0) {

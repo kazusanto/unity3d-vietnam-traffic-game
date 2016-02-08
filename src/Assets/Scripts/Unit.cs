@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using Common;
 
-namespace StageUnit
+namespace Game
 {
     public static class UnitConst
     {
@@ -15,11 +14,17 @@ namespace StageUnit
     {
         public int x { get; set; }
         public int y { get; set; }
-        public Vector2 toVector2 { get { return Unit.vector2(x, y); } }
-        public Vector3 toVector3 { get { return Unit.vector3(x, y); } }
 
         public Unit(int ux, int uy) {
             x = ux; y = uy; 
+        }
+
+        public Vector2 toVector2() {
+            return Unit.vector2(x, y);
+        }
+
+        public Vector3 toVector3() {
+            return Unit.vector3(x, y);
         }
 
         public static Vector2 vector2(int ux, int uy) {
@@ -47,7 +52,7 @@ namespace StageUnit
         }
     }
 
-    public static class Extensions
+    public static class UnitExtensions
     {
         public static Vector2 unit(this Vector2 vec, int ux, int uy) {
             vec.x = ux * UnitConst.size;
