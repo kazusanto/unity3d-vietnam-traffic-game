@@ -11,25 +11,25 @@ public class CameraController : MonoBehaviour {
         Transition
     };
 
-    [SerializeField] private float m_Distance = 5.0f;
-    [SerializeField] private float m_Tilt = 10.0f;
-    [SerializeField] private float m_Rise = 1f;
-    [SerializeField] private float m_Shift = 1.5f;
-    [SerializeField] private float m_TransitDuration = 1.5f;
+    [SerializeField] float m_Distance = 5.0f;
+    [SerializeField] float m_Tilt = 10.0f;
+    [SerializeField] float m_Rise = 1f;
+    [SerializeField] float m_Shift = 1.5f;
+    [SerializeField] float m_TransitDuration = 1.5f;
 
-    private GameObject m_target = null;
-    private PlayerController m_player = null;
-    private Vector3 m_normalPosition;
-    private Vector3 m_reversePosition;
-    private Vector3 m_transitionPosition;
-    private Vector3 m_normalAngle;
-    private Vector3 m_reverseAngle;
-    private Vector3 m_transitionAngle;
-    private Vector3 m_currentPosition;
-    private Vector3 m_currentAngle;
-    private Status m_status = Status.Normal;
-    private Status m_status_to = Status.Undefine;
-    private float m_TransitBegin = 0.0f;
+    GameObject m_target = null;
+    PlayerController m_player = null;
+    Vector3 m_normalPosition;
+    Vector3 m_reversePosition;
+    Vector3 m_transitionPosition;
+    Vector3 m_normalAngle;
+    Vector3 m_reverseAngle;
+    Vector3 m_transitionAngle;
+    Vector3 m_currentPosition;
+    Vector3 m_currentAngle;
+    Status m_status = Status.Normal;
+    Status m_status_to = Status.Undefine;
+    float m_TransitBegin = 0.0f;
 
     // Use this for initialization
 	void Start () {

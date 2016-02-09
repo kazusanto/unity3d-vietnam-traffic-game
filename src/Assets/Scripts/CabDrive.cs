@@ -4,25 +4,24 @@ using Game;
 
 public class CabDrive : MonoBehaviour {
 
-    [SerializeField] private string m_StageTag = "Stage";
-    [SerializeField] private AudioClip m_Horn = null;
-    [SerializeField] private AudioClip m_Drive = null;
-    [SerializeField] private AudioClip m_Idle = null;
+    [SerializeField] string m_StageTag = "Stage";
+    [SerializeField] AudioClip m_Horn = null;
+    [SerializeField] AudioClip m_Drive = null;
 
-	private GameObject m_target = null;
-    private CabController m_cab = null;
-    private StageBuilder m_stage = null;
-    private float m_steering = 0.0f;
-    private float m_steering_to = 0.0f;
-    private int m_count = 0;
-    private bool m_hit = false;
-    private bool m_near = false;
-    private AudioSource m_audio = null;
-    private float m_horn_pitch = 1.0f;
-    private float m_accel = 0.0f;
-    private float m_brake = 0.0f;
-    private bool m_vertman = false;
-    private bool m_inited = false;
+	GameObject m_target = null;
+    CabController m_cab = null;
+    StageBuilder m_stage = null;
+    float m_steering = 0.0f;
+    float m_steering_to = 0.0f;
+    int m_count = 0;
+    bool m_hit = false;
+    bool m_near = false;
+    AudioSource m_audio = null;
+    float m_horn_pitch = 1.0f;
+    float m_accel = 0.0f;
+    float m_brake = 0.0f;
+    bool m_vertman = false;
+    bool m_inited = false;
 
 	// Use this for initialization
 	void Start() {
@@ -34,7 +33,7 @@ public class CabDrive : MonoBehaviour {
         m_vertman = Random.Range(0, 2) == 0;
 	}
 	
-    private void init() {
+    void init() {
         var angle = getRoadAngle(transform.position.x, transform.position.z, Vector3.zero, 0.0f);
         transform.eulerAngles = new Vector3(0.0f, angle, 0.0f);
     }
@@ -124,8 +123,6 @@ public class CabDrive : MonoBehaviour {
                 if (Random.Range(1, 4) == 1) {
                     m_hit = true;
                     m_count = Random.Range(5, 20);
-                    // m_audio.pitch = 1.0f;
-                    // m_audio.PlayOneShot(m_Idle);
                 } else {
                     var mydir2d = new Vector2(transform.forward.x, transform.forward.z);
                     var mypos2d = new Vector2(transform.position.x, transform.position.z);
@@ -139,7 +136,7 @@ public class CabDrive : MonoBehaviour {
         }
     }
 
-    private Vector2 getRoadDirection(float x, float z, Vector2 vec, float speed)
+    Vector2 getRoadDirection(float x, float z, Vector2 vec, float speed)
     {
         TrafficRule choose = chooseRoadRule(x, z, vec, speed);
         Vector2 dir = Vector2.zero;
@@ -160,7 +157,7 @@ public class CabDrive : MonoBehaviour {
         return dir;
     }
 
-    private float getRoadAngle(float x, float z, Vector2 vec, float speed)
+    float getRoadAngle(float x, float z, Vector2 vec, float speed)
     {
         TrafficRule choose = chooseRoadRule(x, z, vec, speed);
         float angle = 0.0f;
@@ -181,7 +178,7 @@ public class CabDrive : MonoBehaviour {
         return angle;
     }
 
-    private TrafficRule chooseRoadRule(float x, float z, Vector2 vec, float speed)
+    TrafficRule chooseRoadRule(float x, float z, Vector2 vec, float speed)
     {
         Vector2 forward = vec.normalized * 2.0f * speed;
         x += forward.x;

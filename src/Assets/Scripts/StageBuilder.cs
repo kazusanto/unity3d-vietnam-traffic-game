@@ -7,60 +7,61 @@ using LandRange = Game.Range<int>;
 
 public class StageBuilder : MonoBehaviour {
 
-    [SerializeField] private GameObject[] m_LandBlocks = null;
+    [SerializeField] GameObject[] m_LandBlocks = null;
 
-    [SerializeField] private GameObject m_Arrow = null;
-    [SerializeField] private bool m_isDebugMode = false;
-    [SerializeField] private int m_Backward = -20;
-    [SerializeField] private int m_Forward = 20;
-    [SerializeField] private int m_Near = -20;
-    [SerializeField] private int m_Far = 30;
-    [SerializeField] private int m_MaxLands = 5;
-    [SerializeField] private float m_Straightness = 0.5f;
-    [SerializeField] private float m_Blindness = 0.5f;
-    [SerializeField] private bool m_isLoop = true;
-    [SerializeField] private int[] m_LandWidths = { 3, 3, 3 };
-    [SerializeField] private int[] m_RoadWidths = { 4, 4, 4 };
-    [SerializeField] private bool[] m_ReverseRoads = { false, false, true };
+    [SerializeField] GameObject m_Arrow = null;
+    [SerializeField] bool m_isDebugMode = false;
+    [SerializeField] int m_Backward = -10;
+    [SerializeField] int m_Forward = 20;
+    [SerializeField] int m_Near = -30;
+    [SerializeField] int m_Far = 30;
+    [SerializeField] int m_MaxLands = 10;
+    [SerializeField] float m_Straightness = 0.5f;
+    [SerializeField] float m_Blindness = 0.5f;
+    [SerializeField] bool m_isLoop = true;
+    [SerializeField] int[] m_LandWidths = { 3, 3, 3 };
+    [SerializeField] int[] m_RoadWidths = { 4, 4, 4 };
+    [SerializeField] bool[] m_ReverseRoads = { false, false, true };
 
     public float ForwardEnd { get { return worldForUnit(m_next, 0).x; } }
-    private int StageHeight { get { return m_Far - m_Near; } }
-    private int StageWidth  { get { return m_Forward - m_Backward; } }
-    private int CentralUY { get { return -m_Near; } }
 
-    private int RoadWidth{ get { return getRoadWidth(m_index); } }
-    private int LandWidth{ get { return getLandWidth(m_index); } }
-    private int PrevRoadWidth { get { return getRoadWidth(m_index - m_bstep); } }
-    private int PrevLandWidth { get { return getLandWidth(m_index - m_bstep); } }
-    private int NextRoadWidth { get { return getRoadWidth(m_index + m_fstep); } }
-    private int NextLandWidth { get { return getLandWidth(m_index + m_fstep); } }
-    private bool isReverseLine { get { return isReverseLineAt(m_index); } }
-    private bool isPrevLineOpposite { get { return isReverseLine != isReverseLineAt(m_index - m_bstep); } }
-    private bool isNextLineOpposite { get { return isReverseLine != isReverseLineAt(m_index + m_fstep); } }
+    int StageHeight { get { return m_Far - m_Near; } }
+    int StageWidth  { get { return m_Forward - m_Backward; } }
+    int CentralUY { get { return -m_Near; } }
 
-    private GameObject m_player = null;
-    private int m_next = 0;
-    private int m_index = 0;
-    private int m_fstep = 0;
-    private int m_bstep = 0;
-    private List<int> m_prevLands = null;
-    private List<LandRange> m_reservedLands = null;
-    private GameObject m_landBase = null;
-    private TrafficRuleMap m_trafficRuleMap = null;
-    private bool m_inited = false;
+    int RoadWidth{ get { return getRoadWidth(m_index); } }
+    int LandWidth{ get { return getLandWidth(m_index); } }
+    int PrevRoadWidth { get { return getRoadWidth(m_index - m_bstep); } }
+    int PrevLandWidth { get { return getLandWidth(m_index - m_bstep); } }
+    int NextRoadWidth { get { return getRoadWidth(m_index + m_fstep); } }
+    int NextLandWidth { get { return getLandWidth(m_index + m_fstep); } }
+    bool isReverseLine { get { return isReverseLineAt(m_index); } }
+    bool isPrevLineOpposite { get { return isReverseLine != isReverseLineAt(m_index - m_bstep); } }
+    bool isNextLineOpposite { get { return isReverseLine != isReverseLineAt(m_index + m_fstep); } }
 
-    private Vector2 worldForUnit(int ux, int uy) {
+    GameObject m_player = null;
+    int m_next = 0;
+    int m_index = 0;
+    int m_fstep = 0;
+    int m_bstep = 0;
+    List<int> m_prevLands = null;
+    List<LandRange> m_reservedLands = null;
+    GameObject m_landBase = null;
+    TrafficRuleMap m_trafficRuleMap = null;
+    bool m_inited = false;
+
+    Vector2 worldForUnit(int ux, int uy) {
         float wx = (float)(ux + m_Backward) * UnitConst.size;
         float wz = (float)(uy + m_Near) * UnitConst.size;
         return new Vector2(wx, wz);
     }
 
-    private Vector3 vector3ForUnit(int ux, int uy) {
+    Vector3 vector3ForUnit(int ux, int uy) {
         Vector2 xy = worldForUnit(ux, uy);
         return new Vector3(xy.x, 0.0f, xy.y);
     }
 
-    private Unit unitForWorld(float wx, float wz) {
+    Unit unitForWorld(float wx, float wz) {
         float harf = UnitConst.size / 2.0f;
         int x = (int)((wx + harf) / UnitConst.size) - m_Backward;
         int y = (int)((wz + harf) / UnitConst.size) - m_Near;
@@ -80,32 +81,22 @@ public class StageBuilder : MonoBehaviour {
     }
 
     public TrafficRule GetTrafficRule(float x, float z) {
-        bool beyond = false;
-        TrafficRule rule = TrafficRule.Stop;
-        Unit unit = unitForWorld(x, z);
-        if (unit.y >= StageHeight) {
-            beyond = true;
-            unit.y = StageHeight - 1;
-        }
-        if (unit.y < 0) {
-            beyond = true;
-            unit.y = 0;
-        }
-        if (unit.x < 0) {
-            return TrafficRule.Stop;
-        }
-        rule = m_trafficRuleMap.GetRule(x, z);
-        if (beyond && rule == TrafficRule.Stop) { 
-            rule = TrafficRule.Right;
-        }
-        return rule;
+        return m_trafficRuleMap.GetRule(x, z);
     }
 
-    public Range<Vector2>[] GetRoadArea(float x) {
-        return m_trafficRuleMap.GetRoadRanges(x);
+    public Vector3 GetNewVehiclePosition(bool isPreparing)
+    {
+        var center = new Vector2(m_player.transform.position.x, m_player.transform.position.z);
+        var radius = new Range<float>(UnitConst.size * m_Far * 0.9f, UnitConst.size * m_Far);
+        if (isPreparing) {
+            radius.Max = radius.Min;
+            radius.Min = UnitConst.size * 5.0f;
+        }
+        var pos = m_trafficRuleMap.GetRandomPosition(center, radius, true);
+        return new Vector3(pos.x, 0.0f, pos.y);
     }
 
-    private int getLandWidth(int index) { 
+    int getLandWidth(int index) { 
         if (m_isLoop) {
             return getLoopedValue<int>(m_LandWidths, index);
         } else {
@@ -113,7 +104,7 @@ public class StageBuilder : MonoBehaviour {
         }
     }
 
-    private int getRoadWidth(int index) { 
+    int getRoadWidth(int index) { 
         if (m_isLoop) {
             return getLoopedValue<int>(m_RoadWidths, index);
         } else {
@@ -121,7 +112,7 @@ public class StageBuilder : MonoBehaviour {
         }
     }
 
-    private bool isReverseLineAt(int index) { 
+    bool isReverseLineAt(int index) { 
         if (m_isLoop) {
             return getLoopedValue<bool>(m_ReverseRoads, index);
         } else {
@@ -129,7 +120,7 @@ public class StageBuilder : MonoBehaviour {
         }
     }
 
-    private T getExtendedValue<T>(T[] array, int index) { 
+    T getExtendedValue<T>(T[] array, int index) { 
         if (index < 0) {
             return array[0];
         } else {
@@ -138,7 +129,7 @@ public class StageBuilder : MonoBehaviour {
         }
     }
 
-    private T getLoopedValue<T>(T[] array, int index) { 
+    T getLoopedValue<T>(T[] array, int index) { 
         var len = array.Length;
         while (index < 0) {
             index += len;
@@ -168,10 +159,11 @@ public class StageBuilder : MonoBehaviour {
             var unit = unitForWorld(m_player.transform.position.x, 0.0f);
             m_fstep = 0;
             m_bstep = 0;
-            while (m_next < unit.x) {
+            while (m_next < unit.x + m_Forward) {
                 buildNext();
             }
             m_fstep = 1;
+            m_trafficRuleMap.ShowArrows(m_isDebugMode);
         }
     }
 
@@ -191,7 +183,7 @@ public class StageBuilder : MonoBehaviour {
         }
 	}
 
-    private void buildNext() {
+    void buildNext() {
         var ux = m_next;
         var minimum = LandWidth + RoadWidth;
         List<int> lands = new List<int>();
@@ -238,7 +230,7 @@ public class StageBuilder : MonoBehaviour {
         m_next = ux + LandWidth + RoadWidth;
     }
 
-    private List<LandRange> createLandLine(int ux, List<int> lands, bool isReverse) {
+    List<LandRange> createLandLine(int ux, List<int> lands, bool isReverse) {
         var LineRule = isReverse ? TrafficRule.Up : TrafficRule.Down;
         var OppositeRule = isReverse ? TrafficRule.Down : TrafficRule.Up;
         var SlightRightRule = isReverse ? TrafficRule.UpRight : TrafficRule.DownRight;
@@ -305,7 +297,7 @@ public class StageBuilder : MonoBehaviour {
         return reserved;
     }
 
-    private void removePassed() {
+    void removePassed() {
         var minx = m_player.transform.position.x + (m_Backward * UnitConst.size) - 1.0f;
         for (var i = 0; i < m_landBase.transform.childCount; i++) {
             var child = m_landBase.transform.GetChild(i);
@@ -316,7 +308,7 @@ public class StageBuilder : MonoBehaviour {
         m_trafficRuleMap.RemovePassed(minx);
     }
 
-    private void createTrafficRules(int ux, int uy, int width, int depth, TrafficRule rule) {
+    void createTrafficRules(int ux, int uy, int width, int depth, TrafficRule rule) {
         for (var x = ux; x < ux + width; x++) {
             for (var y = uy; y < uy + depth; y++) {
                 m_trafficRuleMap.SetRule(new Unit(x, y), rule);
@@ -324,7 +316,7 @@ public class StageBuilder : MonoBehaviour {
         }
     }
 
-    private void createLand(int ux, int uy, int width, int depth) {
+    void createLand(int ux, int uy, int width, int depth) {
         if (m_LandBlocks == null || m_LandBlocks.Length == 0) {
             return;
         }

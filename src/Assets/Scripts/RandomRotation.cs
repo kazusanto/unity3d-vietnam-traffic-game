@@ -4,11 +4,11 @@ using System.Collections.Generic;
 
 public class RandomRotation : MonoBehaviour {
 
-    [SerializeField] private bool m_360 = false;
-    [SerializeField] private bool m_Front = false;
-    [SerializeField] private bool m_Back = false;
-    [SerializeField] private bool m_Right = false;
-    [SerializeField] private bool m_Left = false;
+    [SerializeField] bool m_360 = false;
+    [SerializeField] bool m_Front = false;
+    [SerializeField] bool m_Back = false;
+    [SerializeField] bool m_Right = false;
+    [SerializeField] bool m_Left = false;
 
     // Use this for initialization
     void Start () {

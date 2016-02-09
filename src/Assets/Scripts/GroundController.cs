@@ -3,14 +3,14 @@ using System.Collections;
 
 public class GroundController : MonoBehaviour {
 
-    [SerializeField] private GameObject m_Ground;
-    [SerializeField] private float m_NearSize;
-    [SerializeField] private float m_FarSize;
+    [SerializeField] GameObject m_Ground;
+    [SerializeField] float m_NearSize;
+    [SerializeField] float m_FarSize;
 
-    private GameObject player = null;
-    private GameObject[] m_nearTiles;
-    private GameObject[] m_farTiles;
-    private GameObject[] m_reverseTiles;
+    GameObject player = null;
+    GameObject[] m_nearTiles;
+    GameObject[] m_farTiles;
+    GameObject[] m_reverseTiles;
 
 	// Use this for initialization
 	void Start () {
@@ -28,7 +28,7 @@ public class GroundController : MonoBehaviour {
         updateTiles(m_reverseTiles, m_FarSize);
     }
 
-    private GameObject[] buildObjects(int num, float size, float z) {
+    GameObject[] buildObjects(int num, float size, float z) {
         GameObject[] result = new GameObject[num];
         for (var i = 0; i < num; i++) {
             var obj = Instantiate(m_Ground);
@@ -40,7 +40,7 @@ public class GroundController : MonoBehaviour {
         return result;
     }
 
-    private void updateTiles(GameObject[] objs, float size) {
+    void updateTiles(GameObject[] objs, float size) {
         var xp = player.transform.position.x;
         foreach (var obj in objs) {
             var x = obj.transform.position.x;

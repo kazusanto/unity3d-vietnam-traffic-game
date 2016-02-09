@@ -5,12 +5,12 @@ using Game;
 
 public class LandBlock : UnitBlock
 {
-    [SerializeField] private GameObject m_Sidewalk = null;
-    [SerializeField] private GameObject m_SidewalkCorner = null;
-    [SerializeField] private GameObject m_Land = null;
-    [SerializeField] private GameObject m_Grass = null;
-    [SerializeField] private GameObject[] m_Trees = null;
-    [SerializeField] private GameObject[] m_Items1x1 = null;
+    [SerializeField] GameObject m_Sidewalk = null;
+    [SerializeField] GameObject m_SidewalkCorner = null;
+    [SerializeField] GameObject m_Land = null;
+    [SerializeField] GameObject m_Grass = null;
+    [SerializeField] GameObject[] m_Trees = null;
+    [SerializeField] GameObject[] m_Items1x1 = null;
 
     public const float LandHeight = 0.1f;
 

@@ -5,28 +5,28 @@ using Game;
 
 public class PlayerController : MonoBehaviour {
 
-    private static bool s_gameover = false;
-    private static int s_score = 0;
+    static bool s_gameover = false;
+    static int s_score = 0;
     public static bool GameOver { get { return s_gameover; } }
     public static int Score { get { return s_score; } }
 
-    [SerializeField] private float m_Speed = 0.5f;
-    [SerializeField] private string[] m_Foots = { "LeftToeBase", "RightToeBase" };
-    [SerializeField] private AudioClip m_Footstep = null;
-    [SerializeField] private AudioClip m_Crash = null;
-    [SerializeField] private bool m_isDemoPlay = false;
-    [SerializeField] private string m_StageTag = "Stage";
+    [SerializeField] float m_Speed = 0.5f;
+    [SerializeField] string[] m_Foots = { "LeftToeBase", "RightToeBase" };
+    [SerializeField] AudioClip m_Footstep = null;
+    [SerializeField] AudioClip m_Crash = null;
+    [SerializeField] bool m_isDemoPlay = false;
+    [SerializeField] string m_StageTag = "Stage";
 
-    private bool m_hit = false;
-    private ThirdPersonCharacter m_controller = null;
-    private Animator m_animator = null;
-    private AudioSource m_audio = null;
-    private Transform[] m_foots = null;
-    private float[] m_footYs = null;
-    private bool m_footstep_odd = false;
-    private StageBuilder m_stage = null;
-    private float m_looking = 0.0f;
-    private Vector3 m_offset;
+    bool m_hit = false;
+    ThirdPersonCharacter m_controller = null;
+    Animator m_animator = null;
+    AudioSource m_audio = null;
+    Transform[] m_foots = null;
+    float[] m_footYs = null;
+    bool m_footstep_odd = false;
+    StageBuilder m_stage = null;
+    float m_looking = 0.0f;
+    Vector3 m_offset;
 
     public float GetLookingFor() {
         return m_looking;
@@ -145,7 +145,7 @@ public class PlayerController : MonoBehaviour {
         }
      }
 
-    private Transform searchTransform(Transform root, string name) {
+    Transform searchTransform(Transform root, string name) {
         var found = root.Find(name);
         if (!found) {
             for (var i = 0; i < root.childCount; i++) {

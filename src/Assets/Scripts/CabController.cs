@@ -4,18 +4,18 @@ using Game;
 
 public class CabController : MonoBehaviour
 {
-    [SerializeField] private bool m_isPlayer = false;
-    [SerializeField] private float m_MaxSpeed = 5.0f;
-    [SerializeField] private float m_MaxSteering = 1.5f;
-    [SerializeField] private float m_Accel = 0.1f;
-    [SerializeField] private float m_Brake = 0.1f;
-    [SerializeField] private GameObject[] m_Baggages = null;
-    [SerializeField] private string m_BaggageOriginName = "CabBody";
-    [SerializeField] private Vector3 m_BaggageOrigin = Vector3.zero;
+    [SerializeField] bool m_isPlayer = false;
+    [SerializeField] float m_MaxSpeed = 5.0f;
+    [SerializeField] float m_MaxSteering = 1.5f;
+    [SerializeField] float m_Accel = 0.1f;
+    [SerializeField] float m_Brake = 0.1f;
+    [SerializeField] GameObject[] m_Baggages = null;
+    [SerializeField] string m_BaggageOriginName = "CabBody";
+    [SerializeField] Vector3 m_BaggageOrigin = Vector3.zero;
 
-    private Animator m_animator = null;
-    private float m_steering = 0.0f;
-    private float m_speed = 0.0f;
+    Animator m_animator = null;
+    float m_steering = 0.0f;
+    float m_speed = 0.0f;
 
     // Use this for initialization
     void Start () {

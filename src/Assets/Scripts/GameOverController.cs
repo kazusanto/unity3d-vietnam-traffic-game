@@ -4,12 +4,12 @@ using System.Collections;
 
 public class GameOverController : MonoBehaviour {
 
-    [SerializeField] private string m_SceneName;
-    [SerializeField] private AudioClip m_Ending;
+    [SerializeField] string m_SceneName;
+    [SerializeField] AudioClip m_Ending;
 
-    private Text m_text;
-    private bool m_released = false;
-    private float m_wait_for;
+    Text m_text;
+    bool m_released = false;
+    float m_wait_for;
 
     // Use this for initialization
 	void Start () {

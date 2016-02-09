@@ -84,10 +84,16 @@ namespace Game
 
     internal class TrafficRuleLine
     {
+        struct RoadCache {
+            public Vector2 position;
+            public bool isUp;
+        };
         List<TrafficRuleData> m_list = null;
+        Dictionary<int, RoadCache> m_cacheForRoad = null;
 
         public TrafficRuleLine(float x, float y, int count, GameObject arrow, GameObject parent) {
             m_list = new List<TrafficRuleData>(count);
+            m_cacheForRoad = new Dictionary<int, RoadCache>(count);
             for (var i = 0; i < count; i++) {
                 m_list.Add(new TrafficRuleData(x, y + UnitConst.size * i, arrow, parent));
             }
@@ -106,18 +112,17 @@ namespace Game
         }
 
         public void SetRule(float x, float y, TrafficRule rule) {
-            foreach (var data in m_list) {
-                if (data.Contains(x, y)) {
-                    data.rule = rule;
-                }
+            int index = getIndex(x, y);
+            if (index != -1) {
+                m_list[index].rule = rule;
+                updateCacheForRoad(index, rule);
             }
         }
 
         public TrafficRule GetRule(float x, float y) {
-            foreach (var data in m_list) {
-                if (data.Contains(x, y)) {
-                    return data.rule;
-                }
+            var data = getData(x, y);
+            if (data != null) {
+                return data.rule;
             }
             return TrafficRule.Stop;
         }
@@ -133,6 +138,57 @@ namespace Game
                 data.Remove();
             }
         }
+
+        public List<Vector2> FindRoadPoints(Vector2 center, Range<float> radius, bool withoutOpposite) {
+            var result = new List<Vector2>(m_cacheForRoad.Count);
+            foreach (var pair in m_cacheForRoad) {
+                var diff = pair.Value.position - center;
+                if (withoutOpposite && ((diff.y < 0.0f) != pair.Value.isUp)) {
+                    continue;
+                }
+                var distance = Mathf.Sqrt(diff.x * diff.x + diff.y * diff.y);
+                if (distance < radius.Min || distance > radius.Max) {
+                    continue;
+                }
+                result.Add(pair.Value.position);
+            }
+            return result;
+        }
+
+        int getIndex(float x, float y) {
+            var first = m_list[0].position;
+            var unit = new Vector2(x - first.x, y - first.y).toUnit();
+            if (unit.y < 0 || unit.y >= m_list.Count) {
+                return -1;
+            }
+            if (!m_list[unit.y].Contains(x, y)) {
+                return -1;
+            }
+            return unit.y;
+        }
+
+        TrafficRuleData getData(float x, float y) {
+            var index = getIndex(x, y);
+            if (index != -1) {
+                return m_list[index];
+            }
+            return null;
+        }
+
+        void updateCacheForRoad(int index, TrafficRule rule) {
+            if (rule == TrafficRule.Stop) {
+                if (m_cacheForRoad.ContainsKey(index)) {
+                    m_cacheForRoad.Remove(index);
+                }
+            } else {
+                if (!m_cacheForRoad.ContainsKey(index)) {
+                    RoadCache data = new RoadCache();
+                    data.position = m_list[index].position;
+                    data.isUp = (rule & TrafficRule.Up) != 0;
+                    m_cacheForRoad[index] = data;
+                }
+            }
+        }
     }
 
     public class TrafficRuleMap
@@ -143,6 +199,10 @@ namespace Game
         GameObject m_arrow;
         GameObject m_parent;
         bool m_visible;
+        Vector2 m_cached_center;
+        Range<float> m_cached_radius;
+        bool m_cached_opposite;
+        List<Vector2> m_cached_points = null;
 
         public TrafficRuleMap(float x, float y, int length, GameObject arrow, GameObject parent) {
             m_list = new Dictionary<int, TrafficRuleLine>();
@@ -151,6 +211,7 @@ namespace Game
             m_arrow = arrow;
             m_parent = parent;
             m_visible = false;
+            m_cached_points = null;
         }
 
         public void SetRule(float x, float y, TrafficRule rule) {
@@ -192,41 +253,11 @@ namespace Game
             }
         }
 
-        public Range<Vector2>[] GetRoadRanges(float x) {
-            Unit unit = new Vector2(x - m_coord.x, 0.0f).toUnit();
-            return GetRoadRanges(unit.x);
-        }
-
-        public Range<Vector2>[] GetRoadRanges(int ux) {
-            var result = new List<Range<Vector2>>();
-            Unit unit = new Unit(ux, 0);
-            if (m_list.ContainsKey(ux)) {
-                var line = m_list[ux];
-                var pos = unit.toVector2() + m_coord;
-                for (int uy = 0; uy <= m_length; uy++) {
-                    var rule = line.GetRule(pos.x, pos.y + UnitConst.size * unit.y);
-                    if (rule == TrafficRule.Stop) {
-                        unit.y = uy;
-                        continue;
-                    }
-                    bool last = uy == m_length;
-                    rule = line.GetRule(pos.x, pos.y + UnitConst.size * uy);
-                    if (rule == TrafficRule.Stop || last) {
-                        var min = unit.toVector2() + m_coord;
-                        var max = Unit.vector2(unit.x + 1, uy) + m_coord;
-                        min.x -= UnitConst.harf;
-                        min.y -= UnitConst.harf;
-                        max.x -= UnitConst.harf;
-                        max.y -= UnitConst.harf;
-                        result.Add(new Range<Vector2>(min, max));
-                        unit.y = uy;
-                    }
-                }
+        public void ShowArrows(bool show) {
+            m_visible = show;
+            foreach (var pair in m_list) {
+                pair.Value.ShowArrows(show);
             }
-            if (result.Count == 0) {
-                return null;
-            }
-            return result.ToArray();
         }
 
         public void RemovePassed(float x) {
@@ -243,11 +274,37 @@ namespace Game
             }
         }
 
-        public void ShowArrows(bool show) {
-            m_visible = show;
-            foreach (var pair in m_list) {
-                pair.Value.ShowArrows(show);
+        public Vector2 GetRandomPosition(Vector2 center, Range<float> radius, bool withoutOpposite) {
+            bool use_cache = true;
+            if (m_cached_points == null ||
+                Mathf.Abs(m_cached_center.x - center.x) > UnitConst.size ||
+                Mathf.Abs(m_cached_center.y - center.y) > UnitConst.size ||
+                Mathf.Abs(m_cached_radius.Min - radius.Min) > UnitConst.size ||
+                Mathf.Abs(m_cached_radius.Max - radius.Max) > UnitConst.size ||
+                m_cached_opposite != withoutOpposite) {
+                use_cache = false;
             }
+            List<Vector2> all;
+            if (use_cache) {
+                all = m_cached_points;
+            } else {
+                all = new List<Vector2>();
+                foreach (var pair in m_list) {
+                    var points = pair.Value.FindRoadPoints(center, radius, withoutOpposite);
+                    all.AddRange(points);
+                }
+                m_cached_points = all;
+                m_cached_center = center;
+                m_cached_radius = radius;
+                m_cached_opposite = withoutOpposite;
+            }
+            if (all.Count > 0) {
+                var position = all[Random.Range(0, all.Count)];
+                position.x += Random.Range(-UnitConst.harf, UnitConst.harf);
+                position.y += Random.Range(-UnitConst.harf, UnitConst.harf);
+                return position;
+            }
+            return Vector2.zero;
         }
     }
 }

@@ -3,7 +3,7 @@ using System.Collections;
 
 public class RandomMaterial : MonoBehaviour {
 
-    [SerializeField] private Material[] m_Materials = null;
+    [SerializeField] Material[] m_Materials = null;
 
     // Use this for initialization
 	void Start () {

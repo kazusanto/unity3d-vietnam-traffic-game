@@ -4,7 +4,7 @@ using System.Collections;
 
 public class ScoreController : MonoBehaviour {
 
-    private Text m_text;
+    Text m_text;
 
     // Use this for initialization
 	void Start () {
