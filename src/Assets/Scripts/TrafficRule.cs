@@ -277,8 +277,8 @@ namespace Game
         public Vector2 GetRandomPosition(Vector2 center, Range<float> radius, bool withoutOpposite) {
             bool use_cache = true;
             if (m_cached_points == null ||
-                Mathf.Abs(m_cached_center.x - center.x) > UnitConst.size ||
-                Mathf.Abs(m_cached_center.y - center.y) > UnitConst.size ||
+                Mathf.Abs(m_cached_center.x - center.x) > UnitConst.size * 4.0f ||
+                Mathf.Abs(m_cached_center.y - center.y) > UnitConst.size * 4.0f ||
                 Mathf.Abs(m_cached_radius.Min - radius.Min) > UnitConst.size ||
                 Mathf.Abs(m_cached_radius.Max - radius.Max) > UnitConst.size ||
                 m_cached_opposite != withoutOpposite) {

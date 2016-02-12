@@ -33,9 +33,7 @@ public class RandomRotation : MonoBehaviour {
                 angle = angles[Random.Range(0, angles.Count)];
             }
         }
-        var rot = transform.localEulerAngles;
-        rot.y += angle;
-        transform.localEulerAngles = rot;
+        transform.Rotate(new Vector3(0.0f, angle, 0.0f), Space.World);
     }
 
     // Update is called once per frame

@@ -159,10 +159,15 @@ public class StageBuilder : MonoBehaviour {
             var unit = unitForWorld(m_player.transform.position.x, 0.0f);
             m_fstep = 0;
             m_bstep = 0;
-            while (m_next < unit.x + m_Forward) {
+            while (m_next < unit.x) {
                 buildNext();
             }
             m_fstep = 1;
+            while (m_next < unit.x + m_Forward) {
+                buildNext();
+                m_index++;
+                m_bstep = 1;
+            }
             m_trafficRuleMap.ShowArrows(m_isDebugMode);
         }
     }
@@ -175,7 +180,6 @@ public class StageBuilder : MonoBehaviour {
             m_trafficRuleMap.ShowArrows(m_isDebugMode);
             buildNext();
             m_index++;
-            m_bstep = 1;
             built = true;
         }
         if (built) {

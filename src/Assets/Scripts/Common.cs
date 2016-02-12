@@ -9,13 +9,30 @@ namespace Game
         public T Min { get; set; }
         public T Max { get; set; }
 
+        public Range() {
+        }
+
         public Range(T min, T max) {
-            Min = min;
-            Max = max;
+            this.Min = min;
+            this.Max = max;
         }
 
         public void Init(T value) {
-            Min = Max = value;
+            this.Min = this.Max = value;
+        }
+    }
+
+    public class Pair<T, U>
+    {
+        public T First { get; set; }
+        public U Second { get; set; }
+
+        public Pair() {
+        }
+
+        public Pair(T first, U second) {
+            this.First = first;
+            this.Second = second;
         }
     }
 

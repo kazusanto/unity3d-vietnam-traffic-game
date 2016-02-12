@@ -51,13 +51,16 @@
      <Compile Include="Assets\Scripts\CameraController.cs" />
      <Compile Include="Assets\Scripts\Common.cs" />
      <Compile Include="Assets\Scripts\GameOverController.cs" />
+     <Compile Include="Assets\Scripts\GardenBlock.cs" />
      <Compile Include="Assets\Scripts\GroundController.cs" />
+     <Compile Include="Assets\Scripts\HousesBlock.cs" />
      <Compile Include="Assets\Scripts\LandBlock.cs" />
      <Compile Include="Assets\Scripts\PlayerController.cs" />
      <Compile Include="Assets\Scripts\RandomMaterial.cs" />
      <Compile Include="Assets\Scripts\RandomRotation.cs" />
      <Compile Include="Assets\Scripts\ScoreController.cs" />
      <Compile Include="Assets\Scripts\StageBuilder.cs" />
+     <Compile Include="Assets\Scripts\StructureBlock.cs" />
      <Compile Include="Assets\Scripts\TrafficRule.cs" />
      <Compile Include="Assets\Scripts\Unit.cs" />
      <Compile Include="Assets\Scripts\UnitBlock.cs" />
