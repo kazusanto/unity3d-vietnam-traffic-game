@@ -40,10 +40,10 @@ public class HousesBlock : UnitBlock
             }
         }
         if (rtx < numx && rty > 0) {
-            createBlock(m_Garden, rtx, 0, numx - rtx, rty, coord);
+            createBlock(m_Garden, rtx + 1, 0, numx - rtx, rty, coord);
         }
         if (rty < numy) {
-            createBlock(m_Garden, 0, rty, numx, numy - rty, coord);
+            createBlock(m_Garden, 0, rty + 1, numx, numy - rty, coord);
         }
     }
 

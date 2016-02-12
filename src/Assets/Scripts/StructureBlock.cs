@@ -57,6 +57,7 @@ public class StructureBlock : UnitBlock
         if (idx < m_UpperStructures.Length) {
             var obj = GameObject.Instantiate(m_UpperStructures[idx]);
             obj.GetComponent<StructureBlock>().Construct(Width, Length, m_isCorner);
+            obj.transform.SetParent(coord.transform);
             obj.transform.localPosition += new Vector3(0.0f, m_StructureHeight, 0.0f);
         }
     }
