@@ -15,6 +15,8 @@ public class CameraController : MonoBehaviour {
     [SerializeField] float m_Tilt = 10.0f;
     [SerializeField] float m_Rise = 1f;
     [SerializeField] float m_Shift = 1.5f;
+    [SerializeField] float m_TransitDistance = 10.0f;
+    [SerializeField] float m_TransitTilt = 60.0f;
     [SerializeField] float m_TransitDuration = 1.5f;
 
     GameObject m_target = null;
@@ -30,12 +32,9 @@ public class CameraController : MonoBehaviour {
     Status m_status = Status.Normal;
     Status m_status_to = Status.Undefine;
     float m_TransitBegin = 0.0f;
+    float m_updateTime = 0.0f;
 
-    // Use this for initialization
-	void Start () {
-        m_target = GameObject.FindGameObjectWithTag("Player");
-        m_player = m_target.GetComponent<PlayerController>();
-
+    void updateParameters() {
         var x = m_Shift;
         var y = m_Distance * Mathf.Sin(m_Tilt * Mathf.Deg2Rad) + m_Rise;
         var z = -m_Distance * Mathf.Cos(m_Tilt * Mathf.Deg2Rad);
@@ -43,12 +42,19 @@ public class CameraController : MonoBehaviour {
         m_normalAngle = new Vector3(m_Tilt, 0.0f, 0.0f);
         m_reversePosition = new Vector3(x, y, -z);
         m_reverseAngle = new Vector3(m_Tilt, 180.0f, 0.0f);
-        var tx = -m_Distance * 1.5f * Mathf.Cos(m_Tilt * 3.0f * Mathf.Deg2Rad) - m_Shift;
-        var ty = m_Distance * 1.5f  * Mathf.Sin(m_Tilt * 3.0f * Mathf.Deg2Rad) + m_Rise;
+        var tx = -m_TransitDistance * Mathf.Cos(m_TransitTilt * Mathf.Deg2Rad) - m_Shift;
+        var ty = m_TransitDistance  * Mathf.Sin(m_TransitTilt * Mathf.Deg2Rad) + m_Rise;
         var tz = 0.0f;
         m_transitionPosition = new Vector3(tx, ty, tz);
-        m_transitionAngle = new Vector3(m_Tilt * 3.0f, 90.0f, 0.0f);
+        m_transitionAngle = new Vector3(m_TransitTilt, 90.0f, 0.0f);
+    }
 
+    // Use this for initialization
+	void Start () {
+        m_target = GameObject.FindGameObjectWithTag("Player");
+        m_player = m_target.GetComponent<PlayerController>();
+
+        updateParameters();
         m_currentPosition = m_normalPosition;
         m_currentAngle = m_normalAngle;
         m_status = Status.Normal;
@@ -71,6 +77,13 @@ public class CameraController : MonoBehaviour {
                     m_status_to = Status.Transition;
                 }
                 m_TransitBegin = Time.time;
+            } else {
+                m_updateTime += Time.deltaTime;
+                if (m_updateTime > 1.0f) {
+                    m_updateTime = 0.0f;
+                    updateParameters();
+                    m_TransitBegin = Time.time;
+                }
             }
         }
         switch (m_status_to) {

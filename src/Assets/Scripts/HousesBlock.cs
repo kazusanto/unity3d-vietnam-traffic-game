@@ -40,16 +40,22 @@ public class HousesBlock : UnitBlock
             }
         }
         if (rtx < numx && rty > 0) {
-            createBlock(m_Garden, rtx + 1, 0, numx - rtx, rty, coord);
+            var obj = createBlock(m_Garden, rtx + 1, 0, numx - rtx, rty, coord);
+            if (numx - rtx == 1) {
+                obj.transform.localPosition += new Vector3(-UnitConst.harf, 0.0f, 0.0f);
+            }
         }
         if (rty < numy) {
-            createBlock(m_Garden, 0, rty + 1, numx, numy - rty, coord);
+            var obj = createBlock(m_Garden, 0, rty + 1, numx, numy - rty, coord);
+            if (numy - rty == 1) {
+                obj.transform.localPosition += new Vector3(0.0f, 0.0f, -UnitConst.harf);
+            }
         }
     }
 
-    void createStructures(GameObject[] prefabs, int x, int y, int dx, int dy, int numx, int numy, GameObject parent) {
-        int x1 = dx / 2;
-        int y1 = dy / 2;
+    void createStructures(GameObject[] prefabs, int ux, int uy, int dx, int dy, int numx, int numy, GameObject parent) {
+        int x1 = ux + dx / 2;
+        int y1 = ux + dy / 2;
         int x2 = x1 + (numx - 1) * dx;
         int y2 = y1 + (numy - 1) * dy;
         createStructure(prefabs[Random.Range(0, prefabs.Length)], x1, y1, dx, dy, 270.0f, true, parent);
@@ -69,11 +75,12 @@ public class HousesBlock : UnitBlock
         }
     }
 
-    GameObject createStructure(GameObject prefab, int x, int y, int dx, int dy, float angle, bool isCorner, GameObject parent) {
+    GameObject createStructure(GameObject prefab, int ux, int uy, int dx, int dy, float angle, bool isCorner, GameObject parent) {
+        var pos = new Vector3().unit(ux, uy) - new Vector3(UnitConst.harf, 0.0f, UnitConst.harf);
         var obj = GameObject.Instantiate(prefab);
         obj.GetComponent<StructureBlock>().Construct(dx, dy, isCorner);
         obj.transform.SetParent(parent.transform);
-        obj.transform.localPosition = new Vector3().unit(x, y);
+        obj.transform.localPosition = pos;
         obj.transform.Rotate(new Vector3(0.0f, angle, 0.0f), Space.World);
         return obj;
     }

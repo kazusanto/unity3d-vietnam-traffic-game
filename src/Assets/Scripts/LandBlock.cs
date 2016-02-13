@@ -53,8 +53,8 @@ public class LandBlock : UnitBlock
         var upperblock = createUpperBlock(dx, dy, coord);
         if (upperblock) {
             var offset = new Vector3(0.0f, LandHeight, 0.0f);
-            offset.x += numx <= size2 ? UnitConst.harf : UnitConst.harf;
-            offset.z += numy <= size2 ? UnitConst.harf : UnitConst.harf;
+            offset.x += numx <= size2 ? UnitConst.harf : UnitConst.size;
+            offset.z += numy <= size2 ? UnitConst.harf : UnitConst.size;
             upperblock.transform.localPosition = offset;
         }
     }
