@@ -8,7 +8,7 @@ using LandRange = Game.Range<int>;
 public class StageBuilder : MonoBehaviour {
 
     [SerializeField] GameObject[] m_LandBlocks = null;
-
+    [SerializeField] GameObject[] m_Landscapes = null;
     [SerializeField] GameObject m_Arrow = null;
     [SerializeField] bool m_isDebugMode = false;
     [SerializeField] int m_Backward = -10;
@@ -44,6 +44,7 @@ public class StageBuilder : MonoBehaviour {
     int m_index = 0;
     int m_fstep = 0;
     int m_bstep = 0;
+    int m_nextLandscape = 0;
     List<int> m_prevLands = null;
     List<LandRange> m_reservedLands = null;
     GameObject m_landBase = null;
@@ -232,6 +233,16 @@ public class StageBuilder : MonoBehaviour {
         m_reservedLands = createLandLine(ux, lands, isReverseLineAt(m_index));
         m_prevLands = lands;
         m_next = ux + LandWidth + RoadWidth;
+        if (m_nextLandscape < m_next) {
+            var obj1 = GameObject.Instantiate(m_Landscapes[Random.Range(0, m_Landscapes.Length)]);
+            obj1.transform.SetParent(m_landBase.transform);
+            obj1.transform.localPosition = new Vector3().unit(m_nextLandscape, m_Far + Random.Range(20, 40));
+            var obj2 = GameObject.Instantiate(m_Landscapes[Random.Range(0, m_Landscapes.Length)]);
+            obj2.transform.SetParent(m_landBase.transform);
+            obj2.transform.localPosition = new Vector3().unit(m_nextLandscape, m_Near - Random.Range(20, 40));
+            obj2.transform.Rotate(new Vector3(0.0f, 0.0f, 180.0f));
+            m_nextLandscape += 20;
+        }
     }
 
     List<LandRange> createLandLine(int ux, List<int> lands, bool isReverse) {
