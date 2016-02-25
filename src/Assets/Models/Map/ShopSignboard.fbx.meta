@@ -1,23 +1,15 @@
 fileFormatVersion: 2
-guid: 7aeef7bc183ef4a24af3e7817d011953
-timeCreated: 1455292670
+guid: cc57ef6b400194849870251cca255a46
+timeCreated: 1456161932
 licenseType: Free
 ModelImporter:
   serializedVersion: 19
   fileIDToRecycleName:
     100000: //RootNode
-    100002: Camera
-    100004: Cube
-    100006: Lamp
     400000: //RootNode
-    400002: Camera
-    400004: Cube
-    400006: Lamp
     2300000: //RootNode
-    2300002: Cube
     3300000: //RootNode
-    3300002: Cube
-    4300000: Cube
+    4300000: Signboard
   materials:
     importMaterials: 1
     materialName: 0

@@ -6,12 +6,13 @@ using Game;
 public class StructureBlock : UnitBlock
 {
     [SerializeField] float m_StructureHeight = 3.0f;
+    [SerializeField] float m_CanopyHeight = 2.0f;
     [SerializeField] float m_FloorHeight = 0.1f;
     [SerializeField] GameObject[] m_Prefabs = null;
     [SerializeField] GameObject[] m_CornerPrefabs = null;
     [SerializeField] GameObject[] m_Rooms = null;
-    [SerializeField] GameObject[] m_Eaves = null;
     [SerializeField] GameObject[] m_Doors = null;
+    [SerializeField] GameObject[] m_Canopies = null;
     [SerializeField] GameObject[] m_Signboards = null;
     [SerializeField] GameObject[] m_UpperStructures = null;
 
@@ -49,31 +50,37 @@ public class StructureBlock : UnitBlock
             var obj = createUnit(m_Rooms[idx], 0, 0, 0.0f, coord);
             obj.transform.localPosition += new Vector3(0.0f, m_FloorHeight, 0.0f);
         }
-        createParts(0.0f, coord);
+        createParts(false, coord);
         if (m_isCorner) {
-            createParts(-90.0f, coord);
+            createParts(true, coord);
         }
         idx = Random.Range(0, m_UpperStructures.Length);
         if (idx < m_UpperStructures.Length) {
             var obj = GameObject.Instantiate(m_UpperStructures[idx]);
             obj.GetComponent<StructureBlock>().Construct(Width, Length, m_isCorner);
-            obj.transform.SetParent(coord.transform);
             obj.transform.localPosition += new Vector3(0.0f, m_StructureHeight, 0.0f);
+            obj.transform.SetParent(coord.transform);
         }
     }
 
-    void createParts(float angle, GameObject parent) {
-        var idx = Random.Range(0, m_Eaves.Length * 2);
-        if (idx < m_Eaves.Length) {
-            createUnit(m_Eaves[idx], 0, 0, angle, parent);
-        }
+    void createParts(bool isCorner, GameObject parent) {
+        var angle = isCorner ? -90.0f : 0.0f;
+        var offset = isCorner ? new Vector3(-2.0f, 0.0f, 0.0f) : new Vector3(0.0f, 0.0f, 2.0f);
+        var idx = 0;
         idx = Random.Range(0, m_Doors.Length * 2);
         if (idx < m_Doors.Length) {
-            createUnit(m_Doors[idx], 0, 0, angle, parent);
+            var obj = createUnit(m_Doors[idx], 0, 0, angle, parent);
+            obj.transform.localPosition += offset;
+        }
+        idx = Random.Range(0, m_Canopies.Length * 2);
+        if (idx < m_Canopies.Length) {
+            var obj = createUnit(m_Canopies[idx], 0, 0, angle, parent);
+            obj.transform.localPosition += offset + new Vector3(0.0f, m_CanopyHeight, 0.0f);
         }
         idx = Random.Range(0, m_Signboards.Length * 2);
         if (idx < m_Signboards.Length) {
-            createUnit(m_Signboards[idx], 0, 0, angle, parent);
+            var obj = createUnit(m_Signboards[idx], 0, 0, angle, parent);
+            obj.transform.localPosition += offset + new Vector3(0.0f, m_CanopyHeight, 0.0f);
         }
     }
 }

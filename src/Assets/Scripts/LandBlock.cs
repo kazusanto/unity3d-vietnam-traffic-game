@@ -5,7 +5,8 @@ using Game;
 
 public class LandBlock : UnitBlock
 {
-    [SerializeField] float LandHeight = 0.1f;
+    [SerializeField] float m_LandHeight = 0.1f;
+    [SerializeField] float m_SidewalkWidth = 1.5f;
     [SerializeField] GameObject m_Sidewalk = null;
     [SerializeField] GameObject m_SidewalkCorner = null;
     [SerializeField] GameObject m_Land = null;
@@ -47,14 +48,14 @@ public class LandBlock : UnitBlock
                 createUnit(m_Land, x, y, 0.0f, coord);
             }
         }
-        int size2 = (int)(UnitConst.size);
-        var dx = numx <= size2 ? 1 : numx - size2;
-        var dy = numy <= size2 ? 1 : numy - size2;
+        var width2 = m_SidewalkWidth * 2.0f;
+        int dx = numx <= width2 ? 1 : numx - (int)width2;
+        int dy = numy <= width2 ? 1 : numy - (int)width2;
         var upperblock = createUpperBlock(dx, dy, coord);
         if (upperblock) {
-            var offset = new Vector3(0.0f, LandHeight, 0.0f);
-            offset.x += numx <= size2 ? UnitConst.harf : UnitConst.size;
-            offset.z += numy <= size2 ? UnitConst.harf : UnitConst.size;
+            var offset = new Vector3(0.0f, m_LandHeight, 0.0f);
+            offset.x += (numx - dx) * UnitConst.size / 2.0f;
+            offset.z += (numy - dy) * UnitConst.size / 2.0f;
             upperblock.transform.localPosition = offset;
         }
     }
