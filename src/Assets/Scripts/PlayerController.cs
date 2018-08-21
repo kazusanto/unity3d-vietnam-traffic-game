@@ -66,13 +66,14 @@ public class PlayerController : MonoBehaviour {
             m_hit = false;
             if (!m_isDemoPlay && !s_gameover) {
                 s_gameover = true;
-                m_audio.pitch = 1.0f;
-                m_audio.PlayOneShot(m_Crash);
+                if (m_Crash != null) {
+                    m_audio.pitch = 1.0f;
+                    m_audio.PlayOneShot(m_Crash);
+                }
             }
             if (m_controller) {
                 m_controller.Move(Vector3.zero, false, true);
-            }
-            if (!m_controller) {
+            } else {
                 m_animator.SetFloat("direction", 0.0f);
                 m_animator.SetFloat("speed", 0.0f);
                 m_animator.SetTrigger("onHit");
@@ -106,8 +107,10 @@ public class PlayerController : MonoBehaviour {
             if (transform.position.y > 0.05) {
                 m_looking = -0.8f;
             }
+        } else {
+            m_controller.Move(Vector3.zero, false, false);
         }
-        if (m_controller) {
+        if (m_stage && m_animator) {
             if (m_stage.isReverseRoad()) {
                 m_looking = -m_looking;
             }
@@ -133,8 +136,10 @@ public class PlayerController : MonoBehaviour {
             }
             if (footstep) {
                 m_footstep_odd = !m_footstep_odd;
-                m_audio.pitch = m_footstep_odd ? 1.0f : 1.1f;
-                m_audio.PlayOneShot(m_Footstep);
+                if (m_Footstep != null) {
+                    m_audio.pitch = m_footstep_odd ? 1.0f : 1.1f;
+                    m_audio.PlayOneShot(m_Footstep);
+                }
             }
         }
     }
